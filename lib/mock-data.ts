@@ -29,7 +29,8 @@ const commonReviews: Review[] = [
   },
 ]
 
-export const mockBusinessesData: BusinessDetails[] = [
+// Use a mutable array for mock data to simulate database operations
+export let mockBusinessesData: BusinessDetails[] = [
   {
     id: "4",
     name: "Paradise Market",
@@ -52,6 +53,7 @@ export const mockBusinessesData: BusinessDetails[] = [
     reviews: commonReviews,
     latitude: -27.499644,
     longitude: 153.044794,
+    status: "approved", // Default status
   },
   {
     id: "5",
@@ -75,6 +77,7 @@ export const mockBusinessesData: BusinessDetails[] = [
     reviews: commonReviews,
     latitude: -27.4642967,
     longitude: 153.0394663,
+    status: "approved", // Default status
   },
   {
     id: "6",
@@ -98,6 +101,7 @@ export const mockBusinessesData: BusinessDetails[] = [
     reviews: commonReviews,
     latitude: -27.4632558,
     longitude: 153.0185756,
+    status: "approved", // Default status
   },
   {
     id: "7",
@@ -121,5 +125,58 @@ export const mockBusinessesData: BusinessDetails[] = [
     reviews: commonReviews,
     latitude: -27.5553195,
     longitude: 153.0186751,
+    status: "approved", // Default status
   },
 ]
+
+// --- CRUD Operations for Mock Data ---
+
+export async function getBusinesses(): Promise<BusinessDetails[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  return mockBusinessesData
+}
+
+export async function getBusinessById(id: string): Promise<BusinessDetails | undefined> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  return mockBusinessesData.find((b) => b.id === id)
+}
+
+export async function addBusiness(
+  newBusiness: Omit<BusinessDetails, "id" | "reviews" | "reviewCount" | "rating" | "distance">,
+): Promise<BusinessDetails> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  const businessWithDefaults: BusinessDetails = {
+    id: (mockBusinessesData.length + 1).toString(), // Simple ID generation
+    rating: 0,
+    reviewCount: 0,
+    distance: 0, // Placeholder, would be calculated in a real app
+    reviews: [],
+    ...newBusiness,
+    isPromoted: newBusiness.isPromoted || false,
+    status: newBusiness.status || "pending", // Default to pending if not specified
+  }
+  mockBusinessesData.push(businessWithDefaults)
+  return businessWithDefaults
+}
+
+export async function updateBusiness(updatedBusiness: BusinessDetails): Promise<BusinessDetails | null> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  const index = mockBusinessesData.findIndex((b) => b.id === updatedBusiness.id)
+  if (index !== -1) {
+    mockBusinessesData[index] = updatedBusiness
+    return updatedBusiness
+  }
+  return null
+}
+
+export async function deleteBusiness(id: string): Promise<boolean> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  const initialLength = mockBusinessesData.length
+  mockBusinessesData = mockBusinessesData.filter((b) => b.id !== id)
+  return mockBusinessesData.length < initialLength
+}

@@ -27,6 +27,7 @@ export interface Business {
   workingHours?: string
   latitude?: number
   longitude?: number
+  status: "pending" | "approved" | "rejected" // Added status field
 }
 
 export interface BusinessDetails extends Business {
