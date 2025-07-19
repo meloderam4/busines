@@ -31,18 +31,18 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/" className="text-3xl font-bold text-blue-600 mb-8 block">
-            بیزینس یاب
+            Business Finder
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900">ورود به حساب کاربری</h2>
-          <p className="mt-2 text-gray-600">به حساب کاربری خود وارد شوید</p>
+          <h2 className="text-2xl font-bold text-gray-900">Log In to Your Account</h2>
+          <p className="mt-2 text-gray-600">Log in to your account</p>
         </div>
 
         <Card>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-right block mb-2">
-                  ایمیل *
+                <Label htmlFor="email" className="text-left block mb-2">
+                  Email *
                 </Label>
                 <Input
                   id="email"
@@ -50,14 +50,14 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="example@email.com"
-                  className="text-right"
+                  className="text-left"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="password" className="text-right block mb-2">
-                  رمز عبور *
+                <Label htmlFor="password" className="text-left block mb-2">
+                  Password *
                 </Label>
                 <div className="relative">
                   <Input
@@ -65,14 +65,14 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-                    placeholder="رمز عبور خود را وارد کنید"
-                    className="text-right pr-10"
+                    placeholder="Enter your password"
+                    className="text-left pl-10"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4 text-gray-400" />
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                  فراموشی رمز عبور؟
+                  Forgot Password?
                 </Link>
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -94,31 +94,31 @@ export default function LoginPage() {
                     onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: checked as boolean }))}
                   />
                   <Label htmlFor="remember" className="text-sm">
-                    مرا به خاطر بسپار
+                    Remember me
                   </Label>
                 </div>
               </div>
 
               <Button type="submit" className="w-full">
-                ورود
+                Log In
               </Button>
 
               <Separator className="my-4" />
 
               <div className="space-y-3">
                 <Button variant="outline" className="w-full bg-transparent" type="button">
-                  ورود با گوگل
+                  Log In with Google
                 </Button>
                 <Button variant="outline" className="w-full bg-transparent" type="button">
-                  ورود با اپل
+                  Log In with Apple
                 </Button>
               </div>
 
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  حساب کاربری ندارید؟{" "}
+                  Don't have an account?{" "}
                   <Link href="/register" className="text-blue-600 hover:underline font-medium">
-                    ثبت‌نام کنید
+                    Sign Up
                   </Link>
                 </p>
               </div>
@@ -128,7 +128,9 @@ export default function LoginPage() {
 
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-4">
-            <p className="text-sm text-green-800 text-center">🔒 اطلاعات شما با بالاترین سطح امنیت محافظت می‌شود</p>
+            <p className="text-sm text-green-800 text-center">
+              🔒 Your information is protected with the highest security.
+            </p>
           </CardContent>
         </Card>
       </div>

@@ -40,46 +40,46 @@ export default function RegisterPage() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Link href="/" className="text-3xl font-bold text-blue-600 mb-8 block">
-            بیزینس یاب
+            Business Finder
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900">ایجاد حساب کاربری</h2>
-          <p className="mt-2 text-gray-600">به جامعه کسب‌وکارهای محلی بپیوندید</p>
+          <h2 className="text-2xl font-bold text-gray-900">Create an Account</h2>
+          <p className="mt-2 text-gray-600">Join the local business community</p>
         </div>
 
         <Card>
           <CardContent className="p-6">
             <Tabs value={userType} onValueChange={(value) => setUserType(value as "user" | "business")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="user">کاربر عادی</TabsTrigger>
-                <TabsTrigger value="business">صاحب کسب‌وکار</TabsTrigger>
+                <TabsTrigger value="user">Regular User</TabsTrigger>
+                <TabsTrigger value="business">Business Owner</TabsTrigger>
               </TabsList>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <TabsContent value="user" className="space-y-4 mt-0">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName" className="text-right block mb-2">
-                        نام *
+                      <Label htmlFor="firstName" className="text-left block mb-2">
+                        First Name *
                       </Label>
                       <Input
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value }))}
-                        placeholder="نام"
-                        className="text-right"
+                        placeholder="First Name"
+                        className="text-left"
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="lastName" className="text-right block mb-2">
-                        نام خانوادگی *
+                      <Label htmlFor="lastName" className="text-left block mb-2">
+                        Last Name *
                       </Label>
                       <Input
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value }))}
-                        placeholder="نام خانوادگی"
-                        className="text-right"
+                        placeholder="Last Name"
+                        className="text-left"
                         required
                       />
                     </div>
@@ -88,36 +88,36 @@ export default function RegisterPage() {
 
                 <TabsContent value="business" className="space-y-4 mt-0">
                   <div>
-                    <Label htmlFor="businessName" className="text-right block mb-2">
-                      نام کسب‌وکار *
+                    <Label htmlFor="businessName" className="text-left block mb-2">
+                      Business Name *
                     </Label>
                     <Input
                       id="businessName"
                       value={formData.businessName}
                       onChange={(e) => setFormData((prev) => ({ ...prev, businessName: e.target.value }))}
-                      placeholder="نام کسب‌وکار"
-                      className="text-right"
+                      placeholder="Business Name"
+                      className="text-left"
                       required={userType === "business"}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="businessCategory" className="text-right block mb-2">
-                      دسته‌بندی کسب‌وکار *
+                    <Label htmlFor="businessCategory" className="text-left block mb-2">
+                      Business Category *
                     </Label>
                     <Input
                       id="businessCategory"
                       value={formData.businessCategory}
                       onChange={(e) => setFormData((prev) => ({ ...prev, businessCategory: e.target.value }))}
-                      placeholder="مثال: رستوران، آرایشگاه، فروشگاه"
-                      className="text-right"
+                      placeholder="e.g., Restaurant, Barbershop, Store"
+                      className="text-left"
                       required={userType === "business"}
                     />
                   </div>
                 </TabsContent>
 
                 <div>
-                  <Label htmlFor="email" className="text-right block mb-2">
-                    ایمیل *
+                  <Label htmlFor="email" className="text-left block mb-2">
+                    Email *
                   </Label>
                   <Input
                     id="email"
@@ -125,28 +125,28 @@ export default function RegisterPage() {
                     value={formData.email}
                     onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="example@email.com"
-                    className="text-right"
+                    className="text-left"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone" className="text-right block mb-2">
-                    شماره تلفن *
+                  <Label htmlFor="phone" className="text-left block mb-2">
+                    Phone Number *
                   </Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                    placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-                    className="text-right"
+                    placeholder="+1234567890"
+                    className="text-left"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="password" className="text-right block mb-2">
-                    رمز عبور *
+                  <Label htmlFor="password" className="text-left block mb-2">
+                    Password *
                   </Label>
                   <div className="relative">
                     <Input
@@ -154,14 +154,14 @@ export default function RegisterPage() {
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-                      placeholder="حداقل ۸ کاراکتر"
-                      className="text-right pr-10"
+                      placeholder="At least 8 characters"
+                      className="text-left pl-10"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4 text-gray-400" />
@@ -173,8 +173,8 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="confirmPassword" className="text-right block mb-2">
-                    تکرار رمز عبور *
+                  <Label htmlFor="confirmPassword" className="text-left block mb-2">
+                    Confirm Password *
                   </Label>
                   <div className="relative">
                     <Input
@@ -182,14 +182,14 @@ export default function RegisterPage() {
                       type={showConfirmPassword ? "text" : "password"}
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="تکرار رمز عبور"
-                      className="text-right pr-10"
+                      placeholder="Confirm password"
+                      className="text-left pl-10"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="w-4 h-4 text-gray-400" />
@@ -209,28 +209,27 @@ export default function RegisterPage() {
                     }
                     required
                   />
-                  <Label htmlFor="terms" className="text-sm text-right">
-                    با{" "}
+                  <Label htmlFor="terms" className="text-sm text-left">
+                    I agree to the{" "}
                     <Link href="/terms" className="text-blue-600 hover:underline">
-                      قوانین و مقررات
+                      Terms & Conditions
                     </Link>{" "}
-                    و{" "}
+                    and{" "}
                     <Link href="/privacy" className="text-blue-600 hover:underline">
-                      حریم خصوصی
-                    </Link>{" "}
-                    موافقم
+                      Privacy Policy
+                    </Link>
                   </Label>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={!formData.agreeToTerms}>
-                  ایجاد حساب کاربری
+                  Create Account
                 </Button>
 
                 <div className="text-center">
                   <p className="text-sm text-gray-600">
-                    قبلاً حساب کاربری دارید؟{" "}
+                    Already have an account?{" "}
                     <Link href="/login" className="text-blue-600 hover:underline font-medium">
-                      وارد شوید
+                      Log In
                     </Link>
                   </p>
                 </div>
@@ -243,7 +242,7 @@ export default function RegisterPage() {
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-4">
               <p className="text-sm text-blue-800 text-center">
-                💡 پس از ثبت‌نام، می‌توانید کسب‌وکار خود را با جزئیات کامل ثبت کنید
+                💡 After registration, you can register your business with full details.
               </p>
             </CardContent>
           </Card>

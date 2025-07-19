@@ -65,52 +65,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Vazir", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* Removed Vazir font, relying on Inter or system defaults */
   }
-}
-
-/* Custom styles for Persian/Arabic text */
-.font-vazir {
-  font-family: "Vazir", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Improve text rendering for Persian */
-.persian-text {
-  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Better spacing for Persian text */
-.persian-spacing {
-  letter-spacing: 0.01em;
-  word-spacing: 0.05em;
-}
-
-/* Custom button styles with Vazir font */
-.btn-persian {
-  font-family: "Vazir", sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-/* Card titles with better Persian typography */
-.card-title-persian {
-  font-family: "Vazir", sans-serif;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0.01em;
-}
-
-/* Input fields with Persian font */
-.input-persian {
-  font-family: "Vazir", sans-serif;
-  font-weight: 400;
-}
-
-/* Better line height for Persian text blocks */
-.text-persian {
-  line-height: 1.8;
-  font-family: "Vazir", sans-serif;
 }

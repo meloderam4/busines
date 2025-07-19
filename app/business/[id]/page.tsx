@@ -10,30 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-
-interface Review {
-  id: string
-  userName: string
-  rating: number
-  comment: string
-  date: string
-  avatar: string
-}
-
-interface BusinessDetails {
-  id: string
-  name: string
-  category: string
-  description: string
-  address: string
-  phone: string
-  rating: number
-  reviewCount: number
-  images: string[]
-  services: string[]
-  workingHours: string
-  reviews: Review[]
-}
+import { mockBusinessesData } from "@/lib/mock-data"
+import type { BusinessDetails } from "@/types/business"
 
 export default function BusinessDetailPage() {
   const params = useParams()
@@ -42,50 +20,13 @@ export default function BusinessDetailPage() {
   const [userRating, setUserRating] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // Mock business data
-  const mockBusiness: BusinessDetails = {
-    id: "1",
-    name: "کافه رستوران سنتی",
-    category: "رستوران",
-    description:
-      "بهترین غذاهای سنتی ایرانی با کیفیت عالی و محیطی دنج و آرام. ما با بیش از ۲۰ سال تجربه در خدمت شما هستیم.",
-    address: "تهران، خیابان ولیعصر، پلاک ۱۲۳، طبقه همکف",
-    phone: "۰۲۱-۸۸۷۷۶۶۵۵",
-    rating: 4.8,
-    reviewCount: 156,
-    workingHours: "روزانه ۱۰:۰۰ تا ۲۳:۰۰",
-    images: [
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
-    ],
-    services: ["غذای سنتی", "کافی شاپ", "تحویل درب منزل", "سفارش آنلاین", "پذیرایی مهمان"],
-    reviews: [
-      {
-        id: "1",
-        userName: "احمد محمدی",
-        rating: 5,
-        comment: "غذاها فوق‌العاده خوشمزه بود. محیط بسیار دنج و خدمات عالی. حتماً دوباره می‌آیم.",
-        date: "۱۴۰۳/۰۸/۱۵",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      {
-        id: "2",
-        userName: "فاطمه احمدی",
-        rating: 4,
-        comment: "کیفیت غذا خوب بود اما زمان انتظار کمی طولانی بود. در کل راضی هستم.",
-        date: "۱۴۰۳/۰۸/۱۰",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-    ],
-  }
-
   useEffect(() => {
-    // Simulate API call
+    // Simulate API call to fetch business details by ID
     setTimeout(() => {
-      setBusiness(mockBusiness)
+      const foundBusiness = mockBusinessesData.find((b) => b.id === params.id)
+      setBusiness(foundBusiness || null)
       setLoading(false)
-    }, 1000)
+    }, 500)
   }, [params.id])
 
   const handleSubmitReview = () => {
@@ -94,6 +35,15 @@ export default function BusinessDetailPage() {
       console.log("Submitting review:", { rating: userRating, comment: newReview })
       setNewReview("")
       setUserRating(0)
+    }
+  }
+
+  const handleDirections = () => {
+    if (business?.latitude && business?.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`
+      window.open(url, "_blank")
+    } else {
+      alert("Business location is not available.")
     }
   }
 
@@ -109,9 +59,9 @@ export default function BusinessDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">کسب‌وکار یافت نشد</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Business Not Found</h2>
           <Link href="/">
-            <Button>بازگشت به صفحه اصلی</Button>
+            <Button>Back to Homepage</Button>
           </Link>
         </div>
       </div>
@@ -125,12 +75,12 @@ export default function BusinessDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="text-2xl font-bold text-blue-600">
-              بیزینس یاب
+              Business Finder
             </Link>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm">
                 <Share2 className="w-4 h-4 mr-1" />
-                اشتراک‌گذاری
+                Share
               </Button>
               <Button variant="outline" size="sm">
                 <Heart className="w-4 h-4" />
@@ -172,32 +122,32 @@ export default function BusinessDetailPage() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl text-right">{business.name}</CardTitle>
+                    <CardTitle className="text-2xl text-left">{business.name}</CardTitle>
                     <Badge variant="outline" className="mt-2">
                       {business.category}
                     </Badge>
                   </div>
                   <div className="flex items-center">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-lg font-bold mr-1">{business.rating}</span>
-                    <span className="text-gray-500">({business.reviewCount} نظر)</span>
+                    <span className="text-lg font-bold ml-1">{business.rating}</span>
+                    <span className="text-gray-500">({business.reviewCount} reviews)</span>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700 mb-4 text-right leading-relaxed">{business.description}</p>
+                <p className="text-gray-700 mb-4 text-left leading-relaxed">{business.description}</p>
 
                 <div className="space-y-3">
                   <div className="flex items-center text-gray-600">
-                    <MapPin className="w-5 h-5 ml-2" />
-                    <span className="text-right">{business.address}</span>
+                    <MapPin className="w-5 h-5 mr-2" />
+                    <span className="text-left">{business.address}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
-                    <Phone className="w-5 h-5 ml-2" />
+                    <Phone className="w-5 h-5 mr-2" />
                     <span>{business.phone}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
-                    <Clock className="w-5 h-5 ml-2" />
+                    <Clock className="w-5 h-5 mr-2" />
                     <span>{business.workingHours}</span>
                   </div>
                 </div>
@@ -205,7 +155,7 @@ export default function BusinessDetailPage() {
                 <Separator className="my-4" />
 
                 <div>
-                  <h4 className="font-semibold mb-3 text-right">خدمات ارائه‌شده:</h4>
+                  <h4 className="font-semibold mb-3 text-left">Services Offered:</h4>
                   <div className="flex flex-wrap gap-2">
                     {business.services.map((service, index) => (
                       <Badge key={index} variant="secondary">
@@ -220,16 +170,16 @@ export default function BusinessDetailPage() {
             {/* Reviews Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-right">نظرات کاربران</CardTitle>
+                <CardTitle className="text-left">User Reviews</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Add Review */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h5 className="font-semibold mb-3 text-right">نظر خود را بنویسید:</h5>
-                  <div className="flex items-center mb-3 justify-end">
-                    <span className="text-sm text-gray-600 ml-2">امتیاز:</span>
+                  <h5 className="font-semibold mb-3 text-left">Write a Review:</h5>
+                  <div className="flex items-center mb-3 justify-start">
+                    <span className="text-sm text-gray-600 mr-2">Rating:</span>
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button key={star} onClick={() => setUserRating(star)} className="ml-1">
+                      <button key={star} onClick={() => setUserRating(star)} className="mr-1">
                         <Star
                           className={`w-5 h-5 ${
                             star <= userRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
@@ -239,13 +189,13 @@ export default function BusinessDetailPage() {
                     ))}
                   </div>
                   <Textarea
-                    placeholder="نظر خود را بنویسید..."
+                    placeholder="Write your review..."
                     value={newReview}
                     onChange={(e) => setNewReview(e.target.value)}
-                    className="mb-3 text-right"
+                    className="mb-3 text-left"
                   />
                   <Button onClick={handleSubmitReview} disabled={!newReview.trim() || userRating === 0}>
-                    ثبت نظر
+                    Submit Review
                   </Button>
                 </div>
 
@@ -259,8 +209,8 @@ export default function BusinessDetailPage() {
                             <AvatarImage src={review.avatar || "/placeholder.svg"} />
                             <AvatarFallback>{review.userName[0]}</AvatarFallback>
                           </Avatar>
-                          <div className="mr-3">
-                            <p className="font-semibold text-right">{review.userName}</p>
+                          <div className="ml-3">
+                            <p className="font-semibold text-left">{review.userName}</p>
                             <p className="text-sm text-gray-500">{review.date}</p>
                           </div>
                         </div>
@@ -275,7 +225,7 @@ export default function BusinessDetailPage() {
                           ))}
                         </div>
                       </div>
-                      <p className="text-gray-700 text-right">{review.comment}</p>
+                      <p className="text-gray-700 text-left">{review.comment}</p>
                     </div>
                   ))}
                 </div>
@@ -288,20 +238,20 @@ export default function BusinessDetailPage() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-right">اقدامات سریع</CardTitle>
+                <CardTitle className="text-left">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button className="w-full">
                   <Phone className="w-4 h-4 mr-2" />
-                  تماس با کسب‌وکار
+                  Call Business
                 </Button>
-                <Button variant="outline" className="w-full bg-transparent">
+                <Button variant="outline" className="w-full bg-transparent" onClick={handleDirections}>
                   <MapPin className="w-4 h-4 mr-2" />
-                  مسیریابی
+                  Get Directions
                 </Button>
                 <Button variant="outline" className="w-full bg-transparent">
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  ارسال پیام
+                  Send Message
                 </Button>
               </CardContent>
             </Card>
@@ -309,13 +259,13 @@ export default function BusinessDetailPage() {
             {/* Map Placeholder */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-right">موقعیت روی نقشه</CardTitle>
+                <CardTitle className="text-left">Location on Map</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <MapPin className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">نقشه در اینجا نمایش داده می‌شود</p>
+                    <p className="text-sm text-gray-500">Map will be displayed here</p>
                   </div>
                 </div>
               </CardContent>
@@ -324,25 +274,28 @@ export default function BusinessDetailPage() {
             {/* Similar Businesses */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-right">کسب‌وکارهای مشابه</CardTitle>
+                <CardTitle className="text-left">Similar Businesses</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {[1, 2, 3].map((item) => (
-                  <div key={item} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
-                    <img
-                      src={`/placeholder.svg?height=50&width=50&query=restaurant+${item}`}
-                      alt={`Business ${item}`}
-                      className="w-12 h-12 rounded object-cover"
-                    />
-                    <div className="flex-1 text-right">
-                      <p className="font-medium">رستوران سنتی {item}</p>
-                      <div className="flex items-center justify-end">
-                        <span className="text-sm text-gray-500 ml-1">4.{item}</span>
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                {mockBusinessesData
+                  .filter((b) => b.category === business.category && b.id !== business.id)
+                  .slice(0, 3)
+                  .map((item) => (
+                    <div key={item.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                      <img
+                        src={item.image || `/placeholder.svg?height=50&width=50&query=restaurant+${item.id}`}
+                        alt={item.name}
+                        className="w-12 h-12 rounded object-cover"
+                      />
+                      <div className="flex-1 text-left">
+                        <p className="font-medium">{item.name}</p>
+                        <div className="flex items-center justify-start">
+                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm text-gray-500 ml-1">{item.rating}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </CardContent>
             </Card>
           </div>
