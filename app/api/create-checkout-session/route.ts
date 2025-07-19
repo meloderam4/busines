@@ -1,28 +1,32 @@
+"use server"
+
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20", // Use the latest API version
-})
-
 export async function POST(req: Request) {
+  const { amount, currency, productName } = await req.json()
+
+  if (!amount || !currency || !productName) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+  }
+
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY
+  if (!stripeSecretKey) {
+    return NextResponse.json({ error: "Stripe secret key not set" }, { status: 500 })
+  }
+
+  // Instantiate Stripe at runtime (avoids build-time failure)
+  const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" })
+
   try {
-    const { amount, currency, productName } = await req.json()
-
-    if (!amount || !currency || !productName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
-            currency: currency,
-            product_data: {
-              name: productName,
-            },
-            unit_amount: amount, // amount in smallest currency unit (e.g., cents for USD, rials for IRR)
+            currency,
+            product_data: { name: productName },
+            unit_amount: amount,
           },
           quantity: 1,
         },
