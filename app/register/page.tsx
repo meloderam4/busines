@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,11 +10,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
+  const supabase = createClient()
+  const router = useRouter()
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [userType, setUserType] = useState<"user" | "business">("user")
+  const [userType, setUserType] = useState<"regular" | "business_owner">("regular")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -24,16 +30,93 @@ export default function RegisterPage() {
     phone: "",
     password: "",
     confirmPassword: "",
-    businessName: "",
-    businessCategory: "",
+    businessName: "", // Not directly used for registration, but kept for form state
+    businessCategory: "", // Not directly used for registration, but kept for form state
     agreeToTerms: false,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Here you would handle the registration logic
-    console.log("Registration data:", { ...formData, userType })
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value, type, checked } = e.target as HTMLInputElement
+    setFormData((prev) => ({
+      ...prev,
+      [id]: type === "checkbox" ? checked : value,
+    }))
   }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.")
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            user_type: userType,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`, // For email verification
+        },
+      })
+
+      if (authError) {
+        setError(authError.message)
+        return
+      }
+
+      if (data.user) {
+        // User created, now update profile with user_type
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ user_type: userType, first_name: formData.firstName, last_name: formData.lastName, phone: formData.phone })
+          .eq('id', data.user.id);
+
+        if (profileError) {
+          setError(profileError.message);
+          // Optionally, handle rollback or log this error
+          return;
+        }
+
+        alert("Registration successful! Please check your email to verify your account.")
+        router.push("/login") // Redirect to login after successful registration
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?user_type=${userType}`, // Pass user_type for profile creation
+        },
+      });
+
+      if (authError) {
+        setError(authError.message);
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -48,14 +131,14 @@ export default function RegisterPage() {
 
         <Card>
           <CardContent className="p-6">
-            <Tabs value={userType} onValueChange={(value) => setUserType(value as "user" | "business")}>
+            <Tabs value={userType} onValueChange={(value) => setUserType(value as "regular" | "business_owner")}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="user">Regular User</TabsTrigger>
-                <TabsTrigger value="business">Business Owner</TabsTrigger>
+                <TabsTrigger value="regular">Regular User</TabsTrigger>
+                <TabsTrigger value="business_owner">Business Owner</TabsTrigger>
               </TabsList>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <TabsContent value="user" className="space-y-4 mt-0">
+              <form onSubmit={handleRegister} className="space-y-4">
+                <TabsContent value="regular" className="space-y-4 mt-0">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="firstName" className="text-left block mb-2">
@@ -64,7 +147,7 @@ export default function RegisterPage() {
                       <Input
                         id="firstName"
                         value={formData.firstName}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value }))}
+                        onChange={handleInputChange}
                         placeholder="First Name"
                         className="text-left"
                         required
@@ -77,7 +160,7 @@ export default function RegisterPage() {
                       <Input
                         id="lastName"
                         value={formData.lastName}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value }))}
+                        onChange={handleInputChange}
                         placeholder="Last Name"
                         className="text-left"
                         required
@@ -86,18 +169,47 @@ export default function RegisterPage() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="business" className="space-y-4 mt-0">
+                <TabsContent value="business_owner" className="space-y-4 mt-0">
                   <div>
+                    <Label htmlFor="firstName" className="text-left block mb-2">
+                      First Name *
+                    </Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      placeholder="First Name"
+                      className="text-left"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName" className="text-left block mb-2">
+                      Last Name *
+                    </Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      placeholder="Last Name"
+                      className="text-left"
+                      required
+                    />
+                  </div>
+                  {/* Business Name and Category are not directly part of user registration in Supabase auth,
+                      but can be collected here and stored in a separate 'businesses' table later.
+                      For now, we'll keep them as placeholders or remove if not needed for user profile. */}
+                  {/* <div>
                     <Label htmlFor="businessName" className="text-left block mb-2">
                       Business Name *
                     </Label>
                     <Input
                       id="businessName"
                       value={formData.businessName}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, businessName: e.target.value }))}
+                      onChange={handleInputChange}
                       placeholder="Business Name"
                       className="text-left"
-                      required={userType === "business"}
+                      required={userType === "business_owner"}
                     />
                   </div>
                   <div>
@@ -107,12 +219,12 @@ export default function RegisterPage() {
                     <Input
                       id="businessCategory"
                       value={formData.businessCategory}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, businessCategory: e.target.value }))}
+                      onChange={handleInputChange}
                       placeholder="e.g., Restaurant, Barbershop, Store"
                       className="text-left"
-                      required={userType === "business"}
+                      required={userType === "business_owner"}
                     />
-                  </div>
+                  </div> */}
                 </TabsContent>
 
                 <div>
@@ -123,7 +235,7 @@ export default function RegisterPage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                    onChange={handleInputChange}
                     placeholder="example@email.com"
                     className="text-left"
                     required
@@ -132,15 +244,14 @@ export default function RegisterPage() {
 
                 <div>
                   <Label htmlFor="phone" className="text-left block mb-2">
-                    Phone Number *
+                    Phone Number
                   </Label>
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                    onChange={handleInputChange}
                     placeholder="+1234567890"
                     className="text-left"
-                    required
                   />
                 </div>
 
@@ -153,9 +264,9 @@ export default function RegisterPage() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                      onChange={handleInputChange}
                       placeholder="At least 8 characters"
-                      className="text-left pl-10"
+                      className="text-left pr-10"
                       required
                     />
                     <button
@@ -181,9 +292,9 @@ export default function RegisterPage() {
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       value={formData.confirmPassword}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                      onChange={handleInputChange}
                       placeholder="Confirm password"
-                      className="text-left pl-10"
+                      className="text-left pr-10"
                       required
                     />
                     <button
@@ -221,8 +332,10 @@ export default function RegisterPage() {
                   </Label>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={!formData.agreeToTerms}>
-                  Create Account
+                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+                <Button type="submit" className="w-full" disabled={!formData.agreeToTerms || loading}>
+                  {loading ? "Registering..." : "Create Account"}
                 </Button>
 
                 <div className="text-center">
@@ -233,12 +346,21 @@ export default function RegisterPage() {
                     </Link>
                   </p>
                 </div>
+
+                <div className="space-y-3 mt-4">
+                  <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('google')} disabled={loading}>
+                    Sign Up with Google
+                  </Button>
+                  <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('apple')} disabled={loading}>
+                    Sign Up with Apple
+                  </Button>
+                </div>
               </form>
             </Tabs>
           </CardContent>
         </Card>
 
-        {userType === "business" && (
+        {userType === "business_owner" && (
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-4">
               <p className="text-sm text-blue-800 text-center">

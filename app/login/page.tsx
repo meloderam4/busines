@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,20 +10,76 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
+  const supabase = createClient()
+  const router = useRouter()
+
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
+    rememberMe: false, // Supabase handles session persistence, this might be less relevant
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Here you would handle the login logic
-    console.log("Login data:", formData)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, type, checked } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [id]: type === "checkbox" ? checked : value,
+    }))
   }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (authError) {
+        setError(authError.message)
+        return
+      }
+
+      router.push("/profile") // Redirect to profile or dashboard on successful login
+      router.refresh() // Refresh to update server components
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (authError) {
+        setError(authError.message);
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -39,7 +94,7 @@ export default function LoginPage() {
 
         <Card>
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <Label htmlFor="email" className="text-left block mb-2">
                   Email *
@@ -48,7 +103,7 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  onChange={handleInputChange}
                   placeholder="example@email.com"
                   className="text-left"
                   required
@@ -64,9 +119,9 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                    onChange={handleInputChange}
                     placeholder="Enter your password"
-                    className="text-left pl-10"
+                    className="text-left pr-10"
                     required
                   />
                   <button
@@ -99,17 +154,19 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                Log In
+              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Logging In..." : "Log In"}
               </Button>
 
               <Separator className="my-4" />
 
               <div className="space-y-3">
-                <Button variant="outline" className="w-full bg-transparent" type="button">
+                <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('google')} disabled={loading}>
                   Log In with Google
                 </Button>
-                <Button variant="outline" className="w-full bg-transparent" type="button">
+                <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('apple')} disabled={loading}>
                   Log In with Apple
                 </Button>
               </div>
