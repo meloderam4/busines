@@ -2,10 +2,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { getUsers } from "@/lib/mock-users" // Import the new mock user data
+import { getUsers } from "@/lib/db/users"
 import Link from "next/link"
-import { PlusCircle, Edit } from "lucide-react"
-// import { deleteUserAction } from "@/app/admin/actions" // Placeholder for future user actions
+import { PlusCircle, Edit, Trash2 } from "lucide-react"
+import { deleteUserAction } from "@/app/admin/users/actions"
 
 export default async function AdminUsersPage() {
   const users = await getUsers()
@@ -63,13 +63,12 @@ export default async function AdminUsersPage() {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </Link>
-                      {/* Placeholder for delete action */}
-                      {/* <form action={deleteUserAction}>
+                      <form action={deleteUserAction}>
                         <input type="hidden" name="id" value={user.id} />
                         <Button variant="destructive" size="sm" type="submit">
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </form> */}
+                      </form>
                     </div>
                   </TableCell>
                 </TableRow>

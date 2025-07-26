@@ -2,80 +2,102 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { addBusiness, updateBusiness, deleteBusiness } from "@/lib/mock-data"
+import { addBusiness, updateBusiness, deleteBusiness } from "@/lib/db/businesses"
 import type { BusinessDetails } from "@/types/business"
 
 export async function addBusinessAction(formData: FormData) {
-  const latitudeStr = formData.get("latitude") as string
-  const longitudeStr = formData.get("longitude") as string
+  try {
+    const latitudeStr = formData.get("latitude") as string
+    const longitudeStr = formData.get("longitude") as string
 
-  const latitude = latitudeStr ? Number.parseFloat(latitudeStr) : undefined
-  const longitude = longitudeStr ? Number.parseFloat(longitudeStr) : undefined
+    const latitude = latitudeStr ? Number.parseFloat(latitudeStr) : null
+    const longitude = longitudeStr ? Number.parseFloat(longitudeStr) : null
 
-  const data: Omit<BusinessDetails, "id" | "reviews" | "reviewCount" | "rating" | "distance" | "images"> = {
-    name: formData.get("businessName") as string,
-    category: formData.get("category") as string,
-    description: formData.get("description") as string,
-    address: formData.get("address") as string,
-    phone: formData.get("phone") as string,
-    email: formData.get("email") as string,
-    website: formData.get("website") as string,
-    workingHours: formData.get("workingHours") as string,
-    services: JSON.parse(formData.get("services") as string),
-    latitude: isNaN(latitude as number) ? undefined : latitude, // Handle NaN
-    longitude: isNaN(longitude as number) ? undefined : longitude, // Handle NaN
-    isPromoted: formData.get("isPromoted") === "true",
-    status: formData.get("status") as BusinessDetails["status"],
-    image: "/placeholder.svg?height=400&width=600", // Default placeholder for now
+    const data: Omit<
+      BusinessDetails,
+      "id" | "reviews" | "reviewCount" | "rating" | "distance" | "createdAt" | "updatedAt"
+    > = {
+      name: formData.get("businessName") as string,
+      category: formData.get("category") as string,
+      description: formData.get("description") as string,
+      address: formData.get("address") as string,
+      phone: formData.get("phone") as string,
+      email: (formData.get("email") as string) || null,
+      website: (formData.get("website") as string) || null,
+      workingHours: (formData.get("workingHours") as string) || null,
+      services: JSON.parse((formData.get("services") as string) || "[]"),
+      images: JSON.parse((formData.get("images") as string) || "[]"),
+      latitude: isNaN(latitude as number) ? null : latitude,
+      longitude: isNaN(longitude as number) ? null : longitude,
+      isPromoted: formData.get("isPromoted") === "true",
+      status: (formData.get("status") as BusinessDetails["status"]) || "pending",
+      image: "/placeholder.svg?height=400&width=600",
+    }
+
+    await addBusiness(data)
+    revalidatePath("/admin/businesses")
+    revalidatePath("/")
+  } catch (error) {
+    console.error("Error adding business:", error)
+    throw error
   }
 
-  await addBusiness(data)
-  revalidatePath("/admin/businesses")
-  revalidatePath("/") // Revalidate homepage to show new businesses
   redirect("/admin/businesses")
 }
 
 export async function updateBusinessAction(formData: FormData) {
-  const latitudeStr = formData.get("latitude") as string
-  const longitudeStr = formData.get("longitude") as string
+  try {
+    const latitudeStr = formData.get("latitude") as string
+    const longitudeStr = formData.get("longitude") as string
 
-  const latitude = latitudeStr ? Number.parseFloat(latitudeStr) : undefined
-  const longitude = longitudeStr ? Number.parseFloat(longitudeStr) : undefined
+    const latitude = latitudeStr ? Number.parseFloat(latitudeStr) : null
+    const longitude = longitudeStr ? Number.parseFloat(longitudeStr) : null
 
-  const data: BusinessDetails = {
-    id: formData.get("id") as string,
-    name: formData.get("businessName") as string,
-    category: formData.get("category") as string,
-    description: formData.get("description") as string,
-    address: formData.get("address") as string,
-    phone: formData.get("phone") as string,
-    email: formData.get("email") as string,
-    website: formData.get("website") as string,
-    workingHours: formData.get("workingHours") as string,
-    services: JSON.parse(formData.get("services") as string),
-    latitude: isNaN(latitude as number) ? undefined : latitude, // Handle NaN
-    longitude: isNaN(longitude as number) ? undefined : longitude, // Handle NaN
-    isPromoted: formData.get("isPromoted") === "true",
-    status: formData.get("status") as BusinessDetails["status"],
-    image: formData.get("image") as string, // Use existing image or update
-    images: JSON.parse(formData.get("images") as string), // Use existing images or update
-    rating: Number.parseFloat(formData.get("rating") as string),
-    reviewCount: Number.parseInt(formData.get("reviewCount") as string),
-    distance: Number.parseFloat(formData.get("distance") as string),
-    reviews: JSON.parse(formData.get("reviews") as string),
+    const data: BusinessDetails = {
+      id: formData.get("id") as string,
+      name: formData.get("businessName") as string,
+      category: formData.get("category") as string,
+      description: formData.get("description") as string,
+      address: formData.get("address") as string,
+      phone: formData.get("phone") as string,
+      email: (formData.get("email") as string) || null,
+      website: (formData.get("website") as string) || null,
+      workingHours: (formData.get("workingHours") as string) || null,
+      services: JSON.parse((formData.get("services") as string) || "[]"),
+      images: JSON.parse((formData.get("images") as string) || "[]"),
+      latitude: isNaN(latitude as number) ? null : latitude,
+      longitude: isNaN(longitude as number) ? null : longitude,
+      isPromoted: formData.get("isPromoted") === "true",
+      status: formData.get("status") as BusinessDetails["status"],
+      image: formData.get("image") as string,
+      rating: Number.parseFloat(formData.get("rating") as string),
+      reviewCount: Number.parseInt(formData.get("reviewCount") as string),
+      distance: Number.parseFloat((formData.get("distance") as string) || "0"),
+      reviews: JSON.parse((formData.get("reviews") as string) || "[]"),
+      createdAt: formData.get("createdAt") as string,
+    }
+
+    await updateBusiness(data)
+    revalidatePath("/admin/businesses")
+    revalidatePath(`/admin/businesses/${data.id}/edit`)
+    revalidatePath("/")
+    revalidatePath(`/business/${data.id}`)
+  } catch (error) {
+    console.error("Error updating business:", error)
+    throw error
   }
 
-  await updateBusiness(data)
-  revalidatePath("/admin/businesses")
-  revalidatePath(`/admin/businesses/${data.id}/edit`)
-  revalidatePath("/") // Revalidate homepage to show updated businesses
-  revalidatePath(`/business/${data.id}`) // Revalidate business detail page
   redirect("/admin/businesses")
 }
 
 export async function deleteBusinessAction(formData: FormData) {
-  const id = formData.get("id") as string
-  await deleteBusiness(id)
-  revalidatePath("/admin/businesses")
-  revalidatePath("/") // Revalidate homepage
+  try {
+    const id = formData.get("id") as string
+    await deleteBusiness(id)
+    revalidatePath("/admin/businesses")
+    revalidatePath("/")
+  } catch (error) {
+    console.error("Error deleting business:", error)
+    throw error
+  }
 }
