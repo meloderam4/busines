@@ -70,7 +70,7 @@ export default function BottomNav() {
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 transition-transform duration-300 md:hidden",
+        "fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50 transition-transform duration-300 md:hidden",
         isVisible ? "translate-y-0" : "translate-y-full",
       )}
     >
@@ -83,12 +83,12 @@ export default function BottomNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[60px]",
-                item.isActive ? "text-blue-600" : "text-gray-500 hover:text-blue-600",
+                item.isActive ? "text-primary" : "text-muted-foreground hover:text-primary",
                 item.isSpecial && "relative",
               )}
             >
               {item.isSpecial ? (
-                <div className="bg-blue-600 text-white p-3 rounded-full shadow-lg transform -translate-y-2">
+                <div className="bg-primary text-primary-foreground p-3 rounded-full shadow-lg transform -translate-y-2">
                   <Icon className="w-6 h-6" />
                 </div>
               ) : (
@@ -103,14 +103,14 @@ export default function BottomNav() {
               >
                 {item.label}
               </span>
-              {item.isActive && !item.isSpecial && <div className="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>}
+              {item.isActive && !item.isSpecial && <div className="w-1 h-1 bg-primary rounded-full mt-1"></div>}
             </Link>
           )
         })}
       </div>
 
       {/* Safe area for devices with home indicator */}
-      <div className="h-safe-area-inset-bottom bg-white"></div>
+      <div className="h-safe-area-inset-bottom bg-card"></div>
     </nav>
   )
 }

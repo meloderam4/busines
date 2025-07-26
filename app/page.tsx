@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MapPin, Star, Plus, Filter } from "lucide-react"
+import { Search, MapPin, Star, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,17 +52,19 @@ export default function HomePage() {
       business.services.some((service) => service.toLowerCase().includes(searchQuery.toLowerCase())),
   )
 
-  const promotedBusinesses = filteredBusinesses.filter((b) => b.isPromoted)
-  const regularBusinesses = filteredBusinesses.filter((b) => !b.isPromoted)
+  // For a minimalist design, we'll show all businesses together,
+  // and rely on search/filter for discovery.
+  // const promotedBusinesses = filteredBusinesses.filter((b) => b.isPromoted)
+  // const regularBusinesses = filteredBusinesses.filter((b) => !b.isPromoted)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-blue-600">Business Finder</h1>
+              <h1 className="text-2xl font-bold text-primary">Business Finder</h1>
               <Badge variant="secondary" className="hidden sm:inline-flex">
                 <MapPin className="w-3 h-3 mr-1" />
                 {userLocation ? "Location Active" : "Detecting Location..."}
@@ -70,7 +72,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-2">
               <Link href="/register">
-                <Button variant="outline" size="sm" className="bg-transparent">
+                <Button variant="outline" size="sm">
                   Login / Register
                 </Button>
               </Link>
@@ -85,69 +87,52 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Search Section */}
-      <section className="bg-blue-600 text-white py-12">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Find Local Businesses</h2>
-          <p className="text-blue-100 mb-8">Discover the best services around you</p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+      {/* Prominent Search Section */}
+      <section className="bg-primary text-primary-foreground py-16 md:py-24 text-center">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">Discover Local Businesses</h2>
+          <p className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto">
+            Find the best services and products near you.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto bg-card rounded-lg shadow-xl p-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Search business, services..."
+                placeholder="Search businesses, services, categories..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-left"
+                className="pl-12 pr-4 h-14 text-lg border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground"
               />
             </div>
-            <Button variant="secondary" size="lg" className="h-12">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
+            <Button size="lg" className="h-14 text-lg px-8">
+              Search
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content - Business Listings */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading businesses...</p>
           </div>
         ) : (
-          <>
-            {/* Promoted Businesses */}
-            {promotedBusinesses.length > 0 && (
-              <section className="mb-12">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Featured Businesses</h3>
-                  <Badge variant="secondary">Promoted</Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {promotedBusinesses.map((business) => (
-                    <BusinessCard key={business.id} business={business} />
-                  ))}
-                </div>
-              </section>
+          <section>
+            <h3 className="text-2xl font-bold text-foreground mb-6">All Businesses</h3>
+            {filteredBusinesses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredBusinesses.map((business) => (
+                  <BusinessCard key={business.id} business={business} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No businesses found matching your criteria.</p>
+              </div>
             )}
-
-            {/* Regular Businesses */}
-            <section>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Businesses Near You</h3>
-              {regularBusinesses.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {regularBusinesses.map((business) => (
-                    <BusinessCard key={business.id} business={business} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No businesses found</p>
-                </div>
-              )}
-            </section>
-          </>
+          </section>
         )}
       </main>
     </div>
@@ -156,42 +141,45 @@ export default function HomePage() {
 
 function BusinessCard({ business }: { business: Business }) {
   return (
-    <Card className={`hover:shadow-lg transition-shadow ${business.isPromoted ? "ring-2 ring-yellow-400" : ""}`}>
+    <Card className="hover:shadow-lg transition-shadow duration-200 border border-border rounded-lg overflow-hidden">
       <div className="relative">
         <img
-          src={business.image || "/placeholder.svg"}
+          src={business.image || "/placeholder.svg?height=200&width=300&query=business+listing"}
           alt={business.name}
-          className="w-full h-48 object-cover rounded-t-lg"
+          className="w-full h-48 object-cover"
         />
         {business.isPromoted && (
-          <Badge className="absolute top-2 right-2 bg-yellow-500 text-yellow-900">Featured</Badge>
+          <Badge className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 font-semibold">Featured</Badge>
         )}
-        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-          <MapPin className="w-3 h-3 inline mr-1" />
-          {business.distance} km
+        <div className="absolute bottom-3 left-3 bg-background/80 text-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1">
+          <MapPin className="w-3 h-3" />
+          <span>{business.distance} km</span>
         </div>
       </div>
-      <CardHeader className="pb-2">
+      <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg text-left">{business.name}</CardTitle>
-            <Badge variant="outline" className="mt-1">
+            <CardTitle className="text-lg font-semibold text-foreground text-left">{business.name}</CardTitle>
+            <Badge variant="secondary" className="mt-1 text-muted-foreground">
               {business.category}
             </Badge>
           </div>
           <div className="flex items-center">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium ml-1">{business.rating}</span>
-            <span className="text-xs text-gray-500">({business.reviewCount})</span>
+            <span className="text-sm font-medium ml-1 text-foreground">{business.rating}</span>
+            <span className="text-xs text-muted-foreground">({business.reviewCount})</span>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-gray-600 text-sm mb-3 text-left">{business.description}</p>
-        <p className="text-gray-500 text-xs mb-3 text-left">{business.address}</p>
+      <CardContent className="p-4 pt-0">
+        <p className="text-muted-foreground text-sm mb-3 text-left line-clamp-2">{business.description}</p>
+        <p className="text-muted-foreground text-xs mb-3 text-left flex items-center gap-1">
+          <MapPin className="w-3 h-3" />
+          {business.address}
+        </p>
         <div className="flex flex-wrap gap-1 mb-4">
           {business.services.slice(0, 3).map((service, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
+            <Badge key={index} variant="outline" className="text-xs text-muted-foreground border-border">
               {service}
             </Badge>
           ))}
@@ -202,7 +190,7 @@ function BusinessCard({ business }: { business: Business }) {
               View Details
             </Button>
           </Link>
-          <Button size="sm" variant="default">
+          <Button size="sm" variant="secondary">
             <MapPin className="w-4 h-4" />
           </Button>
         </div>
