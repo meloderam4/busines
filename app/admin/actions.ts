@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { addBusiness, updateBusiness, deleteBusiness } from "@/lib/db/businesses"
+import { addBusiness, updateBusiness, deleteBusiness, getBusinessById } from "@/lib/db/businesses"
 import type { BusinessDetails } from "@/types/business"
 
 export async function addBusinessAction(formData: FormData) {
@@ -37,6 +37,7 @@ export async function addBusinessAction(formData: FormData) {
     await addBusiness(data)
     revalidatePath("/admin/businesses")
     revalidatePath("/")
+    revalidatePath("/admin") // Revalidate admin dashboard
   } catch (error) {
     console.error("Error adding business:", error)
     throw error
@@ -82,6 +83,7 @@ export async function updateBusinessAction(formData: FormData) {
     revalidatePath(`/admin/businesses/${data.id}/edit`)
     revalidatePath("/")
     revalidatePath(`/business/${data.id}`)
+    revalidatePath("/admin") // Revalidate admin dashboard
   } catch (error) {
     console.error("Error updating business:", error)
     throw error
@@ -96,8 +98,33 @@ export async function deleteBusinessAction(formData: FormData) {
     await deleteBusiness(id)
     revalidatePath("/admin/businesses")
     revalidatePath("/")
+    revalidatePath("/admin") // Revalidate admin dashboard
   } catch (error) {
     console.error("Error deleting business:", error)
+    throw error
+  }
+}
+
+export async function updateBusinessStatusAction(formData: FormData) {
+  const id = formData.get("id") as string
+  const status = formData.get("status") as BusinessDetails["status"]
+
+  try {
+    const business = await getBusinessById(id)
+    if (!business) {
+      throw new Error("Business not found")
+    }
+
+    const updatedBusiness = {
+      ...business,
+      status: status,
+    }
+    await updateBusiness(updatedBusiness)
+    revalidatePath("/admin") // Revalidate the admin dashboard to show updated status
+    revalidatePath("/admin/businesses") // Revalidate the businesses list
+    revalidatePath("/") // Revalidate homepage if status affects visibility
+  } catch (error) {
+    console.error(`Error updating business status to ${status}:`, error)
     throw error
   }
 }

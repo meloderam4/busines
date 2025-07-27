@@ -1,69 +1,264 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  :root {
+\
+@layer base \{\
+  :root \{
     --background: 0 0% 100%; /* White */
-    --foreground: 220 10% 10%; /* Dark Gray */
-    --card: 0 0% 100%;
-    --card-foreground: 220 10% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 10% 10%;
-    --primary: 210 80% 40%; /* Muted Blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 210 20% 95%; /* Light Gray */
-    --secondary-foreground: 220 10% 10%;
-    --muted: 210 20% 95%;
-    --muted-foreground: 210 10% 40%; /* Medium Gray */
-    --accent: 210 20% 95%;
-    --accent-foreground: 220 10% 10%;
-    --destructive: 0 80% 50%; /* Red */
-    --destructive-foreground: 0 0% 100%;
-    --border: 210 10% 90%; /* Light Gray Border */
-    --input: 210 10% 90%;
-    --ring: 210 80% 40%;
-    --radius: 0.5rem; /* Slightly smaller radius for cleaner look */
-    --chart-1: 210 80% 40%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
+\
+--foreground: 220 10% 10%
+; /* Dark Gray */
+\
+--card: 0 0% 100%
+;
+\
+--card-foreground: 220 10% 10%
+;
+\
+--popover: 0 0% 100%
+;
+\
+--popover-foreground: 220 10% 10%
+;
+\
+--primary: 210 80% 40%
+; /* Muted Blue */
+\
+--primary-foreground: 0 0% 100%
+; /* White */
+\
+--secondary: 210 20% 95%
+; /* Light Gray */
+\
+--secondary-foreground: 220 10% 10%
+;
+\
+--muted: 210 20% 95%
+;
+\
+--muted-foreground: 210 10% 40%
+; /* Medium Gray */
+\
+--accent: 210 20% 95%
+;
+\
+--accent-foreground: 220 10% 10%
+;
+\
+--destructive: 0 80% 50%
+; /* Red */
+\
+--destructive-foreground: 0 0% 100%
+;
+\
+--border: 210 10% 90%
+; /* Light Gray Border */
+\
+--input: 210 10% 90%
+;
+\
+--ring: 210 80% 40%
+;
+\
+--radius: 0.5rem
+; /* Slightly smaller radius for cleaner look */
+\
+--chart-1: 210 80% 40%
+;
+\
+--chart-2: 160 60% 45%
+;
+\
+--chart-3: 30 80% 55%
+;
+\
+--chart-4: 280 65% 60%
+;
+\
+--chart-5: 340 75% 55
+%
+;
 
-  .dark {
-    --background: 220 10% 10%; /* Dark Gray */
-    --foreground: 0 0% 95%; /* Off-White */
-    --card: 220 10% 15%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 10% 15%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 210 80% 60%; /* Lighter Muted Blue */
-    --primary-foreground: 220 10% 10%;
-    --secondary: 210 10% 20%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 210 10% 20%;
-    --muted-foreground: 210 10% 60%;
-    --accent: 210 10% 20%;
-    --accent-foreground: 0 0% 95%;
-    --destructive: 0 60% 40%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 210 10% 25%;
-    --input: 210 10% 25%;
-    --ring: 210 80% 60%;
-    --chart-1: 210 80% 60%;
-    --chart-2: 160 60% 55%;
-    --chart-3: 30 80% 65%;
-    --chart-4: 280 65% 70%;
-    --chart-5: 340 75% 65%;
-  }
-}
+    /* Custom colors for admin dashboard */\
+--dashboard-blue-light: 200 90% 60%
+; /* Brighter blue for gradient start */
+\
+--dashboard-blue-dark: 210 80% 40%
+; /* Primary blue for gradient end */
+\
+--dashboard-green: 140 70% 45%
+; /* Vibrant green for approve */
+\
+--dashboard-red: 0 80% 55
+%
+; /* Vibrant red for reject */
+--dashboard-yellow: 40 90% 60
+%
+; /* Yellow for pending */
+--dashboard-gray: 210 10% 95
+%
+; /* Light gray background for cards */
+\}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
+  .dark \{
+    --background: 220 10% 10
+%
+; /* Dark Gray */
+--foreground: 0 0% 95
+%
+; /* Off-White */
+--card: 220 10% 15
+%
+;
+--card-foreground: 0 0% 95
+%
+;
+--popover: 220 10% 15
+%
+;
+--popover-foreground: 0 0% 95
+%
+;
+--primary: 210 80% 60
+%
+; /* Lighter Muted Blue */
+--primary-foreground: 220 10% 10
+%
+;
+--secondary: 210 10% 20
+%
+;
+--secondary-foreground: 0 0% 95
+%
+;
+--muted: 210 10% 20
+%
+;
+--muted-foreground: 210 10% 60
+%
+;
+--accent: 210 10% 20
+%
+;
+--accent-foreground: 0 0% 95
+%
+;
+--destructive: 0 60% 40
+%
+;
+--destructive-foreground: 0 0% 95
+%
+;
+--border: 210 10% 25
+%
+;
+--input: 210 10% 25
+%
+;
+--ring: 210 80% 60
+%
+;
+--chart-1: 210 80% 60
+%
+;
+--chart-2: 160 60% 55
+%
+;
+--chart-3: 30 80% 65
+%
+;
+--chart-4: 280 65% 70
+%
+;
+--chart-5: 340 75% 65
+%
+;
+
+/* Custom colors for admin dashboard (dark mode adjustments) */
+--dashboard-blue-light: 200 90% 40
+%
+;
+--dashboard-blue-dark: 210 80% 50
+%
+;
+--dashboard-green: 140 70% 35
+%
+;
+--dashboard-red: 0 80% 45
+%
+;
+--dashboard-yellow: 40 90% 40
+%
+;
+--dashboard-gray: 210 10% 20
+%
+;
+\}
+\}
+
+@layer base \{
+  * \{
+    @apply border-border
+;
+\}
+  body \{
+    @apply bg-background text-foreground
+;
+\}
+\}
+
+/* Custom Tailwind classes for the dashboard */
+.bg-gradient-to-r-dashboard \{
+  background-image: linear-gradient(to right, hsl(var(--dashboard-blue-light)), hsl(var(--dashboard-blue-dark))
+)
+;
+\}
+
+.bg-dashboard-green \{
+  background-color: hsl(var(--dashboard-green)
+)
+;
+\}
+.text-dashboard-green \{
+  color: hsl(var(--dashboard-green)
+)
+;
+\}
+.hover\:bg-dashboard-green\/90:hover \{
+  background-color: hsl(var(--dashboard-green) / 0.9
+)
+;
+\}
+
+.bg-dashboard-red \{
+  background-color: hsl(var(--dashboard-red)
+)
+;
+\}
+.text-dashboard-red \{
+  color: hsl(var(--dashboard-red)
+)
+;
+\}
+.hover\:bg-dashboard-red\/90:hover \{
+  background-color: hsl(var(--dashboard-red) / 0.9
+)
+;
+\}
+
+.bg-dashboard-yellow \{
+  background-color: hsl(var(--dashboard-yellow)
+)
+;
+\}
+.text-dashboard-yellow \{
+  color: hsl(var(--dashboard-yellow)
+)
+;
+\}
+
+.bg-dashboard-gray \{
+  background-color: hsl(var(--dashboard-gray)
+)
+;
+\}
