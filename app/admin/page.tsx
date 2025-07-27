@@ -1,71 +1,101 @@
+import { getAllBusinesses } from "@/lib/mock-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Building2, Users, Star, Clock } from "lucide-react"
-import { getBusinesses } from "@/lib/mock-data"
-import { getUsers } from "@/lib/mock-users" // Import getUsers
+import { Badge } from "@/components/ui/badge"
+import { Building2, Users, Star, TrendingUp } from "lucide-react"
 
-export default async function AdminDashboardPage() {
-  const businesses = await getBusinesses()
-  const users = await getUsers() // Fetch users
+export default function AdminDashboard() {
+  const businesses = getAllBusinesses()
   const totalBusinesses = businesses.length
-  const pendingBusinesses = businesses.filter((b) => b.status === "pending").length
   const approvedBusinesses = businesses.filter((b) => b.status === "approved").length
-  const totalReviews = businesses.reduce((sum, b) => sum + b.reviewCount, 0)
-  const totalUsers = users.length // Get total users
+  const pendingBusinesses = businesses.filter((b) => b.status === "pending").length
+  const promotedBusinesses = businesses.filter((b) => b.isPromoted).length
+  const averageRating = businesses.reduce((sum, b) => sum + b.rating, 0) / businesses.length
+
+  const stats = [
+    {
+      title: "Total Businesses",
+      value: totalBusinesses,
+      icon: Building2,
+      color: "text-blue-600",
+    },
+    {
+      title: "Approved",
+      value: approvedBusinesses,
+      icon: Users,
+      color: "text-green-600",
+    },
+    {
+      title: "Pending Review",
+      value: pendingBusinesses,
+      icon: TrendingUp,
+      color: "text-yellow-600",
+    },
+    {
+      title: "Average Rating",
+      value: averageRating.toFixed(1),
+      icon: Star,
+      color: "text-purple-600",
+    },
+  ]
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
 
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Businesses</CardTitle>
-            <Building2 className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalBusinesses}</div>
-            <p className="text-xs text-gray-500">+{approvedBusinesses} approved</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-            <Clock className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingBusinesses}</div>
-            <p className="text-xs text-gray-500">New businesses awaiting review</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reviews</CardTitle>
-            <Star className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalReviews}</div>
-            <p className="text-xs text-gray-500">Across all businesses</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalUsers}</div>
-            <p className="text-xs text-gray-500">+180 this month</p>
-          </CardContent>
-        </Card>
+        {stats.map((stat, index) => (
+          <Card key={index}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+                <stat.icon className={`w-8 h-8 ${stat.color}`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* You can add more sections here, e.g., recent activities, charts */}
+      {/* Recent Businesses */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Recent Businesses</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600">No recent activity to display.</p>
+          <div className="space-y-4">
+            {businesses.slice(0, 5).map((business) => (
+              <div key={business.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={business.image || "/placeholder.svg"}
+                    alt={business.name}
+                    className="w-12 h-12 rounded-lg object-cover"
+                  />
+                  <div>
+                    <h3 className="font-medium">{business.name}</h3>
+                    <p className="text-sm text-gray-600">{business.category}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge
+                    className={
+                      business.status === "approved"
+                        ? "bg-green-100 text-green-800"
+                        : business.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
+                    }
+                  >
+                    {business.status}
+                  </Badge>
+                  {business.isPromoted && <Badge variant="secondary">Promoted</Badge>}
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

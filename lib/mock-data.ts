@@ -1,182 +1,148 @@
-import type { BusinessDetails, Review } from "@/types/business"
+import type { BusinessDetails } from "@/types/business"
 
-// Define a common set of mock reviews for demonstration
-const commonReviews: Review[] = [
+export const mockBusinesses: BusinessDetails[] = [
   {
-    id: "rev1",
-    userName: "Ahmad Mohammadi",
-    rating: 5,
-    comment:
-      "The food was incredibly delicious. Very cozy atmosphere and excellent service. I will definitely come again.",
-    date: "2024/11/05",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "rev2",
-    userName: "Fatemeh Ahmadi",
-    rating: 4,
-    comment: "The food quality was good, but the waiting time was a bit long. Overall, I'm satisfied.",
-    date: "2024/11/01",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: "rev3",
-    userName: "Ali Hosseini",
-    rating: 5,
-    comment: "Excellent service and very polite staff. It was a great experience.",
-    date: "2024/10/17",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-]
-
-// Use a mutable array for mock data to simulate database operations
-export let mockBusinessesData: BusinessDetails[] = [
-  {
-    id: "4",
+    id: "1",
     name: "Paradise Market",
     category: "Shopping & Retail",
-    description: "Fresh and organic produce market. Expect the best quality from us.",
-    address: "Shop 1/365 Logan Rd, Stones Corner QLD 4120, Australia",
-    phone: "0431181021",
-    rating: 4.7,
-    reviewCount: 120,
-    distance: 150.0, // Example distance for Australia
+    description: "Fresh groceries and daily essentials with a wide variety of international products.",
+    address: "123 Main Street, Sydney NSW 2000",
+    phone: "+61 2 9876 5432",
+    email: "info@paradisemarket.com.au",
+    website: "https://paradisemarket.com.au",
+    workingHours: "Mon-Sun 7 AM - 10 PM",
+    services: ["Fresh Produce", "International Foods", "Home Delivery", "Online Shopping"],
+    images: ["/images/paradise-market.png"],
     image: "/images/paradise-market.png",
+    rating: 4.5,
+    reviewCount: 128,
+    distance: 0.8,
+    latitude: -33.8688,
+    longitude: 151.2093,
     isPromoted: true,
-    services: ["Fresh Produce", "Fruits & Vegetables", "Organic Products", "Groceries"],
-    images: [
-      "/images/paradise-market.png",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
+    status: "approved",
+    reviews: [
+      {
+        id: "1",
+        userName: "Sarah Johnson",
+        rating: 5,
+        comment: "Great selection of fresh produce and friendly staff!",
+        date: "2024-01-15",
+      },
     ],
-    workingHours: "Mon-Sat: 7:30-20:00 Sun: 8:00-19:00",
-    reviews: commonReviews,
-    latitude: -27.499644,
-    longitude: 153.044794,
-    status: "approved", // Default status
   },
   {
-    id: "5",
+    id: "2",
     name: "Toranj Restaurant",
     category: "Restaurant & Cafe",
-    description: "Authentic Iranian cuisine with an unparalleled taste and a pleasant ambiance.",
-    address: "693 Brunswick St, New Farm QLD 4005, Australia",
-    phone: "0734969158",
-    rating: 4.9,
-    reviewCount: 210,
-    distance: 145.0, // Example distance for Australia
+    description: "Authentic Persian cuisine with traditional flavors and modern presentation.",
+    address: "456 George Street, Sydney NSW 2000",
+    phone: "+61 2 9123 4567",
+    email: "contact@toranjrestaurant.com.au",
+    website: "https://toranjrestaurant.com.au",
+    workingHours: "Tue-Sun 5 PM - 11 PM",
+    services: ["Dine-in", "Takeaway", "Catering", "Private Events"],
+    images: ["/images/toranj-restaurant.png"],
     image: "/images/toranj-restaurant.png",
+    rating: 4.7,
+    reviewCount: 89,
+    distance: 1.2,
+    latitude: -33.865,
+    longitude: 151.2094,
     isPromoted: false,
-    services: ["Iranian Food", "Kebab", "Stew", "Tea & Dessert"],
-    images: [
-      "/images/toranj-restaurant.png",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
+    status: "approved",
+    reviews: [
+      {
+        id: "2",
+        userName: "Mike Chen",
+        rating: 5,
+        comment: "Amazing Persian food! The kebabs are incredible.",
+        date: "2024-01-10",
+      },
     ],
-    workingHours: "Daily 12:00 to 22:00",
-    reviews: commonReviews,
-    latitude: -27.4642967,
-    longitude: 153.0394663,
-    status: "approved", // Default status
   },
   {
-    id: "6",
+    id: "3",
     name: "Farah Restaurant",
     category: "Restaurant & Cafe",
-    description: "A unique experience of Middle Eastern cuisine with exceptional quality.",
-    address: "391 Wickham Ter, Spring Hill QLD 4000, Australia",
-    phone: "0731725300",
-    rating: 4.5,
-    reviewCount: 95,
-    distance: 148.0, // Example distance for Australia
+    description: "Family-owned restaurant serving delicious Middle Eastern cuisine.",
+    address: "789 Pitt Street, Sydney NSW 2000",
+    phone: "+61 2 9234 5678",
+    email: "info@farahrestaurant.com.au",
+    website: "https://farahrestaurant.com.au",
+    workingHours: "Mon-Sat 11 AM - 10 PM",
+    services: ["Dine-in", "Takeaway", "Delivery", "Halal Food"],
+    images: ["/images/farah-restaurant.png"],
     image: "/images/farah-restaurant.png",
+    rating: 4.3,
+    reviewCount: 156,
+    distance: 2.1,
+    latitude: -33.87,
+    longitude: 151.207,
     isPromoted: true,
-    services: ["Middle Eastern Food", "Fast Food", "Salad", "Beverages"],
-    images: [
-      "/images/farah-restaurant.png",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
+    status: "approved",
+    reviews: [
+      {
+        id: "3",
+        userName: "Emma Wilson",
+        rating: 4,
+        comment: "Great food and atmosphere. Highly recommended!",
+        date: "2024-01-08",
+      },
     ],
-    workingHours: "Daily 11:00 to 21:00",
-    reviews: commonReviews,
-    latitude: -27.4632558,
-    longitude: 153.0185756,
-    status: "approved", // Default status
   },
   {
-    id: "7",
-    name: "Iraj Auto Repair (RWC)",
+    id: "4",
+    name: "Iraj Auto Repair",
     category: "Automotive Services",
-    description: "Specialized car repairs and RWC certification at the best prices.",
-    address: "680 Beaudesert Rd, Rocklea QLD 4106, QLD 4104, Australia",
-    phone: "0412544121",
-    rating: 4.2,
-    reviewCount: 60,
-    distance: 160.0, // Example distance for Australia
+    description: "Professional auto repair services with experienced mechanics and quality parts.",
+    address: "321 Liverpool Street, Sydney NSW 2000",
+    phone: "+61 2 9345 6789",
+    email: "service@irajautorepair.com.au",
+    website: "https://irajautorepair.com.au",
+    workingHours: "Mon-Fri 8 AM - 6 PM, Sat 8 AM - 4 PM",
+    services: ["Engine Repair", "Brake Service", "Oil Change", "Tire Replacement"],
+    images: ["/images/iraj-auto-repair.png"],
     image: "/images/iraj-auto-repair.png",
+    rating: 4.6,
+    reviewCount: 73,
+    distance: 1.8,
+    latitude: -33.872,
+    longitude: 151.2065,
     isPromoted: false,
-    services: ["Engine Repair", "Oil Change", "RWC Inspection", "Brake Repair"],
-    images: [
-      "/images/iraj-auto-repair.png",
-      "/placeholder.svg?height=400&width=600",
-      "/placeholder.svg?height=400&width=600",
+    status: "approved",
+    reviews: [
+      {
+        id: "4",
+        userName: "David Brown",
+        rating: 5,
+        comment: "Honest and reliable service. Fixed my car quickly!",
+        date: "2024-01-05",
+      },
     ],
-    workingHours: "Monday to Friday 8:00 to 17:00",
-    reviews: commonReviews,
-    latitude: -27.5553195,
-    longitude: 153.0186751,
-    status: "approved", // Default status
   },
 ]
 
-// --- CRUD Operations for Mock Data ---
-
-export async function getBusinesses(): Promise<BusinessDetails[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  return mockBusinessesData
+export function getAllBusinesses(): BusinessDetails[] {
+  return mockBusinesses
 }
 
-export async function getBusinessById(id: string): Promise<BusinessDetails | undefined> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  return mockBusinessesData.find((b) => b.id === id)
+export function getBusinessById(id: string): BusinessDetails | null {
+  return mockBusinesses.find((business) => business.id === id) || null
 }
 
-export async function addBusiness(
-  newBusiness: Omit<BusinessDetails, "id" | "reviews" | "reviewCount" | "rating" | "distance">,
-): Promise<BusinessDetails> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const businessWithDefaults: BusinessDetails = {
-    id: (mockBusinessesData.length + 1).toString(), // Simple ID generation
-    rating: 0,
-    reviewCount: 0,
-    distance: 0, // Placeholder, would be calculated in a real app
-    reviews: [],
-    ...newBusiness,
-    isPromoted: newBusiness.isPromoted || false,
-    status: newBusiness.status || "pending", // Default to pending if not specified
-  }
-  mockBusinessesData.push(businessWithDefaults)
-  return businessWithDefaults
+export function getBusinessesByCategory(category: string): BusinessDetails[] {
+  if (category === "All") return mockBusinesses
+  return mockBusinesses.filter((business) => business.category === category)
 }
 
-export async function updateBusiness(updatedBusiness: BusinessDetails): Promise<BusinessDetails | null> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const index = mockBusinessesData.findIndex((b) => b.id === updatedBusiness.id)
-  if (index !== -1) {
-    mockBusinessesData[index] = updatedBusiness
-    return updatedBusiness
-  }
-  return null
-}
-
-export async function deleteBusiness(id: string): Promise<boolean> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const initialLength = mockBusinessesData.length
-  mockBusinessesData = mockBusinessesData.filter((b) => b.id !== id)
-  return mockBusinessesData.length < initialLength
+export function searchBusinesses(query: string): BusinessDetails[] {
+  const lowercaseQuery = query.toLowerCase()
+  return mockBusinesses.filter(
+    (business) =>
+      business.name.toLowerCase().includes(lowercaseQuery) ||
+      business.description.toLowerCase().includes(lowercaseQuery) ||
+      business.category.toLowerCase().includes(lowercaseQuery) ||
+      business.services.some((service) => service.toLowerCase().includes(lowercaseQuery)),
+  )
 }
