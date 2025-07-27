@@ -57,10 +57,12 @@ export default function LoginPage() {
         return
       }
 
+      // Wait a moment for the auth state to update
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
       // Redirect to the original destination or profile
       const destination = redirectTo || "/profile"
-      router.push(destination)
-      router.refresh()
+      window.location.href = destination // Use window.location.href for more reliable redirect
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.")
     } finally {
@@ -75,7 +77,7 @@ export default function LoginPage() {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${redirectTo}` : ""}`,
+          redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${redirectTo}` : "?redirect=/profile"}`,
         },
       })
 

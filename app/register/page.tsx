@@ -69,7 +69,7 @@ export default function RegisterPage() {
             last_name: formData.lastName,
             phone: formData.phone,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${redirectTo}` : ""}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${redirectTo}` : "?redirect=/profile"}`,
         },
       })
 
@@ -79,27 +79,22 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        // Update profile with user_type
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({
-            user_type: userType,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            phone: formData.phone,
-          })
-          .eq("id", data.user.id)
+        // If user is immediately confirmed (no email verification required)
+        if (data.user.email_confirmed_at) {
+          // Wait a moment for the auth state to update
+          await new Promise((resolve) => setTimeout(resolve, 500))
 
-        if (profileError) {
-          setError(profileError.message)
-          return
+          // Redirect directly
+          const destination = redirectTo || "/profile"
+          window.location.href = destination
+        } else {
+          // Show email verification message
+          alert("Registration successful! Please check your email to verify your account.")
+
+          // Redirect to login with the same redirect parameter
+          const loginUrl = `/login${redirectTo ? `?redirect=${redirectTo}` : ""}`
+          window.location.href = loginUrl
         }
-
-        alert("Registration successful! Please check your email to verify your account.")
-
-        // Redirect to login with the same redirect parameter
-        const loginUrl = `/login${redirectTo ? `?redirect=${redirectTo}` : ""}`
-        router.push(loginUrl)
       }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.")
