@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import Footer from "@/components/footer"
 import BottomNav from "@/components/bottom-nav"
+import MainHeader from "@/components/main-header"
 import GoogleMapsScriptLoader from "@/components/google-maps-script-loader"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -25,7 +26,8 @@ export default function RootLayout({
       <head></head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <GoogleMapsScriptLoader /> {/* No apiKey prop needed here */}
+          <GoogleMapsScriptLoader />
+          <MainHeader />
           <div className="pb-20 md:pb-0">{children}</div>
           <Footer />
           <BottomNav />

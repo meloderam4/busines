@@ -2,26 +2,32 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function RegisterPage() {
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirect")
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [userType, setUserType] = useState<"regular" | "business_owner">("regular")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Show redirect message if user was redirected from business registration
+  const showRedirectMessage = redirectTo === "/business/register"
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -30,8 +36,6 @@ export default function RegisterPage() {
     phone: "",
     password: "",
     confirmPassword: "",
-    businessName: "", // Not directly used for registration, but kept for form state
-    businessCategory: "", // Not directly used for registration, but kept for form state
     agreeToTerms: false,
   })
 
@@ -65,7 +69,7 @@ export default function RegisterPage() {
             last_name: formData.lastName,
             phone: formData.phone,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`, // For email verification
+          emailRedirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${redirectTo}` : ""}`,
         },
       })
 
@@ -75,20 +79,27 @@ export default function RegisterPage() {
       }
 
       if (data.user) {
-        // User created, now update profile with user_type
+        // Update profile with user_type
         const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ user_type: userType, first_name: formData.firstName, last_name: formData.lastName, phone: formData.phone })
-          .eq('id', data.user.id);
+          .from("profiles")
+          .update({
+            user_type: userType,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone,
+          })
+          .eq("id", data.user.id)
 
         if (profileError) {
-          setError(profileError.message);
-          // Optionally, handle rollback or log this error
-          return;
+          setError(profileError.message)
+          return
         }
 
         alert("Registration successful! Please check your email to verify your account.")
-        router.push("/login") // Redirect to login after successful registration
+
+        // Redirect to login with the same redirect parameter
+        const loginUrl = `/login${redirectTo ? `?redirect=${redirectTo}` : ""}`
+        router.push(loginUrl)
       }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.")
@@ -97,26 +108,26 @@ export default function RegisterPage() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setError(null);
+  const handleOAuthSignIn = async (provider: "google" | "apple") => {
+    setLoading(true)
+    setError(null)
     try {
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+      const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?user_type=${userType}`, // Pass user_type for profile creation
+          redirectTo: `${window.location.origin}/auth/callback?user_type=${userType}${redirectTo ? `&redirect=${redirectTo}` : ""}`,
         },
-      });
+      })
 
       if (authError) {
-        setError(authError.message);
+        setError(authError.message)
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+      setError(err.message || "An unexpected error occurred.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -128,6 +139,14 @@ export default function RegisterPage() {
           <h2 className="text-2xl font-bold text-gray-900">Create an Account</h2>
           <p className="mt-2 text-gray-600">Join the local business community</p>
         </div>
+
+        {showRedirectMessage && (
+          <Alert>
+            <AlertDescription>
+              To register a business, you need an account first. Please create a Business Owner account to continue.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardContent className="p-6">
@@ -196,35 +215,6 @@ export default function RegisterPage() {
                       required
                     />
                   </div>
-                  {/* Business Name and Category are not directly part of user registration in Supabase auth,
-                      but can be collected here and stored in a separate 'businesses' table later.
-                      For now, we'll keep them as placeholders or remove if not needed for user profile. */}
-                  {/* <div>
-                    <Label htmlFor="businessName" className="text-left block mb-2">
-                      Business Name *
-                    </Label>
-                    <Input
-                      id="businessName"
-                      value={formData.businessName}
-                      onChange={handleInputChange}
-                      placeholder="Business Name"
-                      className="text-left"
-                      required={userType === "business_owner"}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="businessCategory" className="text-left block mb-2">
-                      Business Category *
-                    </Label>
-                    <Input
-                      id="businessCategory"
-                      value={formData.businessCategory}
-                      onChange={handleInputChange}
-                      placeholder="e.g., Restaurant, Barbershop, Store"
-                      className="text-left"
-                      required={userType === "business_owner"}
-                    />
-                  </div> */}
                 </TabsContent>
 
                 <div>
@@ -250,7 +240,7 @@ export default function RegisterPage() {
                     id="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1234567890"
+                    placeholder="+61 400 000 000"
                     className="text-left"
                   />
                 </div>
@@ -313,14 +303,14 @@ export default function RegisterPage() {
 
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="terms"
+                    id="agreeToTerms"
                     checked={formData.agreeToTerms}
                     onCheckedChange={(checked) =>
                       setFormData((prev) => ({ ...prev, agreeToTerms: checked as boolean }))
                     }
                     required
                   />
-                  <Label htmlFor="terms" className="text-sm text-left">
+                  <Label htmlFor="agreeToTerms" className="text-sm text-left">
                     I agree to the{" "}
                     <Link href="/terms" className="text-blue-600 hover:underline">
                       Terms & Conditions
@@ -335,23 +325,38 @@ export default function RegisterPage() {
                 {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
                 <Button type="submit" className="w-full" disabled={!formData.agreeToTerms || loading}>
-                  {loading ? "Registering..." : "Create Account"}
+                  {loading ? "Creating Account..." : "Create Account"}
                 </Button>
 
                 <div className="text-center">
                   <p className="text-sm text-gray-600">
                     Already have an account?{" "}
-                    <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                    <Link
+                      href={`/login${redirectTo ? `?redirect=${redirectTo}` : ""}`}
+                      className="text-blue-600 hover:underline font-medium"
+                    >
                       Log In
                     </Link>
                   </p>
                 </div>
 
                 <div className="space-y-3 mt-4">
-                  <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('google')} disabled={loading}>
+                  <Button
+                    variant="outline"
+                    className="w-full bg-transparent"
+                    type="button"
+                    onClick={() => handleOAuthSignIn("google")}
+                    disabled={loading}
+                  >
                     Sign Up with Google
                   </Button>
-                  <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('apple')} disabled={loading}>
+                  <Button
+                    variant="outline"
+                    className="w-full bg-transparent"
+                    type="button"
+                    onClick={() => handleOAuthSignIn("apple")}
+                    disabled={loading}
+                  >
                     Sign Up with Apple
                   </Button>
                 </div>
@@ -364,7 +369,7 @@ export default function RegisterPage() {
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-4">
               <p className="text-sm text-blue-800 text-center">
-                💡 After registration, you can register your business with full details.
+                💼 Business Owner accounts can register and manage businesses on our platform.
               </p>
             </CardContent>
           </Card>

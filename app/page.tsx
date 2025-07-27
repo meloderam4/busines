@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MapPin, Star, Filter } from "lucide-react"
+import { Search, MapPin, Star, Filter, Navigation, Eye, Phone, Clock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getAllBusinesses, getBusinessesByCategory, searchBusinesses } from "@/lib/mock-data"
 import type { BusinessDetails } from "@/types/business"
@@ -30,8 +31,9 @@ export default function HomePage() {
     const loadBusinesses = async () => {
       try {
         const data = await getAllBusinesses()
-        setBusinesses(data)
-        setFilteredBusinesses(data)
+        const approvedBusinesses = data.filter((business) => business.status === "approved")
+        setBusinesses(approvedBusinesses)
+        setFilteredBusinesses(approvedBusinesses)
       } catch (error) {
         console.error("Error loading businesses:", error)
         setBusinesses([])
@@ -68,6 +70,19 @@ export default function HomePage() {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
+  }
+
+  const handleDirections = (business: BusinessDetails) => {
+    if (business.latitude && business.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`
+      window.open(url, "_blank")
+    } else {
+      alert("Location information is not available for this business.")
+    }
+  }
+
+  const handleCall = (phone: string) => {
+    window.location.href = `tel:${phone}`
   }
 
   if (loading) {
@@ -140,40 +155,109 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBusinesses.map((business) => (
-              <Link key={business.id} href={`/business/${business.id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                  <div className="relative">
+              <Card key={business.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                {/* Clickable Image */}
+                <Link href={`/business/${business.id}`} className="block relative">
+                  <div className="relative overflow-hidden">
                     <img
-                      src={business.image || "/placeholder.svg?height=200&width=400"}
+                      src={business.image || "/placeholder.svg?height=240&width=400"}
                       alt={business.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
+                      className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
                     {business.isPromoted && (
-                      <Badge className="absolute top-2 right-2 bg-yellow-500 text-white">Promoted</Badge>
+                      <Badge className="absolute top-3 right-3 bg-yellow-500 text-white shadow-lg">Featured</Badge>
                     )}
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-lg line-clamp-1">{business.name}</h3>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span>{business.rating}</span>
+                    {/* Overlay on hover */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-white bg-opacity-90 rounded-full p-3">
+                        <Eye className="w-6 h-6 text-blue-600" />
                       </div>
                     </div>
-                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">{business.description}</p>
-                    <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
-                      <MapPin className="w-4 h-4" />
-                      <span className="line-clamp-1">{business.address}</span>
+                  </div>
+                </Link>
+
+                <CardContent className="p-5">
+                  {/* Business Info */}
+                  <div className="mb-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <Link href={`/business/${business.id}`} className="flex-1">
+                        <h3 className="font-bold text-lg text-gray-900 hover:text-blue-600 transition-colors line-clamp-1 cursor-pointer">
+                          {business.name}
+                        </h3>
+                      </Link>
+                      <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-semibold text-gray-700">{business.rating}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">
-                        {business.category}
-                      </Badge>
-                      <span className="text-sm text-gray-500">{business.reviewCount} reviews</span>
+
+                    <Badge variant="outline" className="mb-3 text-xs">
+                      {business.category}
+                    </Badge>
+
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">{business.description}</p>
+
+                    {/* Contact Info */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-gray-500 text-sm">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        <span className="line-clamp-1">{business.address}</span>
+                      </div>
+                      {business.phone && (
+                        <div className="flex items-center gap-2 text-gray-500 text-sm">
+                          <Phone className="w-4 h-4 flex-shrink-0" />
+                          <span>{business.phone}</span>
+                        </div>
+                      )}
+                      {business.workingHours && (
+                        <div className="flex items-center gap-2 text-gray-500 text-sm">
+                          <Clock className="w-4 h-4 flex-shrink-0" />
+                          <span className="line-clamp-1">{business.workingHours}</span>
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+
+                    {/* Reviews Count */}
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <span>{business.reviewCount} reviews</span>
+                      <span>{business.distance} km away</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 bg-transparent hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+                      onClick={() => handleDirections(business)}
+                    >
+                      <Navigation className="w-4 h-4 mr-1" />
+                      Directions
+                    </Button>
+                    <Link href={`/business/${business.id}`} className="flex-1">
+                      <Button size="sm" className="w-full">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
+
+                  {/* Call Button (if phone available) */}
+                  {business.phone && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                      onClick={() => handleCall(business.phone!)}
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      Call Now
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

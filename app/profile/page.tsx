@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { User, Settings, Heart, MapPin, Phone, Mail, Edit, LogOut } from 'lucide-react'
+import { User, Heart, MapPin, Phone, Mail, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import LogoutButton from "@/components/logout-button" // New component for client-side logout
+import LogoutButton from "@/components/logout-button"
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -17,7 +17,7 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/login") // Redirect unauthenticated users to login
+    redirect("/login")
   }
 
   // Fetch user profile from public.profiles table
@@ -29,7 +29,6 @@ export default async function ProfilePage() {
 
   if (profileError || !profile) {
     console.error("Error fetching profile:", profileError?.message || "Profile not found")
-    // Handle error, maybe redirect to a setup page or show a generic profile
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -43,21 +42,21 @@ export default async function ProfilePage() {
     )
   }
 
-  const userName = `${profile.first_name || user.email?.split('@')[0] || 'User'} ${profile.last_name || ''}`.trim();
-  const userEmail = user.email || "N/A";
-  const userPhone = profile.phone || "N/A";
-  const userAvatar = profile.avatar_url || user.user_metadata.avatar_url || "/placeholder.svg?height=100&width=100";
+  const userName = `${profile.first_name || user.email?.split("@")[0] || "User"} ${profile.last_name || ""}`.trim()
+  const userEmail = user.email || "N/A"
+  const userPhone = profile.phone || "N/A"
+  const userAvatar = profile.avatar_url || user.user_metadata.avatar_url || "/placeholder.svg?height=100&width=100"
   const joinDate = new Date(profile.created_at || user.created_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
-  const userTypeBadge = profile.user_type === "business_owner" ? "Business Owner" : "Regular User";
+  })
+  const userTypeBadge = profile.user_type === "business_owner" ? "Business Owner" : "Regular User"
 
   // Mock data for reviews and favorites for now, will be replaced with real data later
-  const reviewsCount = 12;
-  const favoritesCount = 8;
-  const businessesCount = profile.user_type === "business_owner" ? 2 : 0; // Only business owners can have businesses
+  const reviewsCount = 12
+  const favoritesCount = 8
+  const businessesCount = profile.user_type === "business_owner" ? 2 : 0
 
   const recentActivity = [
     {
@@ -77,21 +76,6 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              Business Finder
-            </Link>
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-1" />
-              Settings
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Profile Header */}
         <Card className="mb-6">
@@ -103,7 +87,9 @@ export default async function ProfilePage() {
               </Avatar>
               <div className="flex-1 text-left">
                 <h1 className="text-2xl font-bold text-gray-900">{userName}</h1>
-                <Badge variant="secondary" className="mt-2">{userTypeBadge}</Badge>
+                <Badge variant="secondary" className="mt-2">
+                  {userTypeBadge}
+                </Badge>
                 <div className="flex items-center justify-start space-x-4 mt-2 text-sm text-gray-600">
                   <span className="flex items-center">
                     <Mail className="w-4 h-4 mr-1" />
@@ -199,7 +185,7 @@ export default async function ProfilePage() {
 
               <Separator className="my-4" />
 
-              <LogoutButton /> {/* Use the new LogoutButton component */}
+              <LogoutButton />
             </CardContent>
           </Card>
         </div>

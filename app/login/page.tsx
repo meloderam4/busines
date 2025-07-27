@@ -2,20 +2,23 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirect")
 
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -24,8 +27,11 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false, // Supabase handles session persistence, this might be less relevant
+    rememberMe: false,
   })
+
+  // Show redirect message if user was redirected from business registration
+  const showRedirectMessage = redirectTo === "/business/register"
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value, type, checked } = e.target
@@ -51,8 +57,10 @@ export default function LoginPage() {
         return
       }
 
-      router.push("/profile") // Redirect to profile or dashboard on successful login
-      router.refresh() // Refresh to update server components
+      // Redirect to the original destination or profile
+      const destination = redirectTo || "/profile"
+      router.push(destination)
+      router.refresh()
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.")
     } finally {
@@ -60,26 +68,26 @@ export default function LoginPage() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setError(null);
+  const handleOAuthSignIn = async (provider: "google" | "apple") => {
+    setLoading(true)
+    setError(null)
     try {
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+      const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?redirect=${redirectTo}` : ""}`,
         },
-      });
+      })
 
       if (authError) {
-        setError(authError.message);
+        setError(authError.message)
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+      setError(err.message || "An unexpected error occurred.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -89,8 +97,16 @@ export default function LoginPage() {
             Business Finder
           </Link>
           <h2 className="text-2xl font-bold text-gray-900">Log In to Your Account</h2>
-          <p className="mt-2 text-gray-600">Log in to your account</p>
+          <p className="mt-2 text-gray-600">Welcome back! Please sign in to continue</p>
         </div>
+
+        {showRedirectMessage && (
+          <Alert>
+            <AlertDescription>
+              You need to log in to register a business. Please sign in to your account or create a new one.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardContent className="p-6">
@@ -144,11 +160,11 @@ export default function LoginPage() {
                 </Link>
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="remember"
+                    id="rememberMe"
                     checked={formData.rememberMe}
                     onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, rememberMe: checked as boolean }))}
                   />
-                  <Label htmlFor="remember" className="text-sm">
+                  <Label htmlFor="rememberMe" className="text-sm">
                     Remember me
                   </Label>
                 </div>
@@ -163,10 +179,22 @@ export default function LoginPage() {
               <Separator className="my-4" />
 
               <div className="space-y-3">
-                <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('google')} disabled={loading}>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  type="button"
+                  onClick={() => handleOAuthSignIn("google")}
+                  disabled={loading}
+                >
                   Log In with Google
                 </Button>
-                <Button variant="outline" className="w-full bg-transparent" type="button" onClick={() => handleOAuthSignIn('apple')} disabled={loading}>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  type="button"
+                  onClick={() => handleOAuthSignIn("apple")}
+                  disabled={loading}
+                >
                   Log In with Apple
                 </Button>
               </div>
@@ -174,7 +202,10 @@ export default function LoginPage() {
               <div className="text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{" "}
-                  <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                  <Link
+                    href={`/register${redirectTo ? `?redirect=${redirectTo}` : ""}`}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
                     Sign Up
                   </Link>
                 </p>
