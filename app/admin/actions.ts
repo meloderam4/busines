@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { addBusiness, updateBusiness, deleteBusiness } from "@/lib/db/businesses"
+import { addBusiness, updateBusiness, deleteBusiness } from "@/lib/mock-data"
 import type { BusinessDetails } from "@/types/business"
 
 export async function addBusinessAction(formData: FormData) {
@@ -63,6 +63,9 @@ export async function updateBusinessAction(formData: FormData) {
   const imagesStr = formData.get("images") as string
   const images = imagesStr ? JSON.parse(imagesStr) : []
 
+  const reviewsStr = formData.get("reviews") as string
+  const reviews = reviewsStr ? JSON.parse(reviewsStr) : []
+
   const data: BusinessDetails = {
     id: formData.get("id") as string,
     name: formData.get("businessName") as string,
@@ -83,7 +86,7 @@ export async function updateBusinessAction(formData: FormData) {
     rating: Number.parseFloat(formData.get("rating") as string) || 0,
     reviewCount: Number.parseInt(formData.get("reviewCount") as string) || 0,
     distance: Number.parseFloat(formData.get("distance") as string) || 0,
-    reviews: [], // Reviews will be loaded separately
+    reviews: reviews,
   }
 
   console.log("Processed update data:", data) // Debug log
