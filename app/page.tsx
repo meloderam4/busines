@@ -1,71 +1,62 @@
-import { Suspense } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
 import { Search, MapPin, Star, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { getBusinesses } from "@/lib/db/businesses"
-import DatabaseSetupNotice from "@/components/database-setup-notice"
+import { mockBusinessesData } from "@/lib/mock-data"
 import type { Business } from "@/types/business"
 
-async function BusinessesContent() {
-  const businesses = await getBusinesses({ status: "approved" })
-
-  // If no businesses and likely database not set up, show setup notice
-  if (businesses.length === 0) {
-    // Try to determine if it's a database setup issue vs just no data
-    try {
-      // This will help us distinguish between "no data" and "no table"
-      await getBusinesses()
-    } catch (error) {
-      return <DatabaseSetupNotice />
-    }
-  }
-
-  const promotedBusinesses = businesses.filter((b) => b.isPromoted).slice(0, 6)
-  const regularBusinesses = businesses.filter((b) => !b.isPromoted).slice(0, 6)
-
-  return (
-    <>
-      {/* Promoted Businesses */}
-      {promotedBusinesses.length > 0 && (
-        <section className="mb-12">
-          <h3 className="text-2xl font-bold text-foreground mb-6">Featured Businesses</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {promotedBusinesses.map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Regular Businesses */}
-      <section>
-        <h3 className="text-2xl font-bold text-foreground mb-6">All Businesses</h3>
-        {regularBusinesses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {regularBusinesses.map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No businesses found.</p>
-            <Link href="/business/register">
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Business
-              </Button>
-            </Link>
-          </div>
-        )}
-      </section>
-    </>
-  )
-}
-
 export default function HomePage() {
+  const [businesses, setBusinesses] = useState<Business[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate getting user location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+        },
+        (error) => {
+          console.log("Location access denied or error:", error)
+          // Fallback to a default location if access is denied
+          setUserLocation({ lat: 35.7, lng: 51.4 }) // Example: Tehran
+        },
+      )
+    } else {
+      console.log("Geolocation is not supported by this browser.")
+      // Fallback to a default location if not supported
+      setUserLocation({ lat: 35.7, lng: 51.4 }) // Example: Tehran
+    }
+
+    // Load businesses from mock data
+    setTimeout(() => {
+      setBusinesses(mockBusinessesData)
+      setLoading(false)
+    }, 1000)
+  }, [])
+
+  const filteredBusinesses = businesses.filter(
+    (business) =>
+      business.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      business.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      business.services.some((service) => service.toLowerCase().includes(searchQuery.toLowerCase())),
+  )
+
+  // For a minimalist design, we'll show all businesses together,
+  // and rely on search/filter for discovery.
+  // const promotedBusinesses = filteredBusinesses.filter((b) => b.isPromoted)
+  // const regularBusinesses = filteredBusinesses.filter((b) => !b.isPromoted)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -76,7 +67,7 @@ export default function HomePage() {
               <h1 className="text-2xl font-bold text-primary">Business Finder</h1>
               <Badge variant="secondary" className="hidden sm:inline-flex">
                 <MapPin className="w-3 h-3 mr-1" />
-                Location Active
+                {userLocation ? "Location Active" : "Detecting Location..."}
               </Badge>
             </div>
             <div className="flex items-center space-x-2">
@@ -108,23 +99,41 @@ export default function HomePage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search businesses, services, categories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 pr-4 h-14 text-lg border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground"
               />
             </div>
-            <Link href="/search">
-              <Button size="lg" className="h-14 text-lg px-8">
-                Search
-              </Button>
-            </Link>
+            <Button size="lg" className="h-14 text-lg px-8">
+              Search
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Main Content - Business Listings */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <Suspense fallback={<div className="text-center py-12">Loading businesses...</div>}>
-          <BusinessesContent />
-        </Suspense>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading businesses...</p>
+          </div>
+        ) : (
+          <section>
+            <h3 className="text-2xl font-bold text-foreground mb-6">All Businesses</h3>
+            {filteredBusinesses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredBusinesses.map((business) => (
+                  <BusinessCard key={business.id} business={business} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No businesses found matching your criteria.</p>
+              </div>
+            )}
+          </section>
+        )}
       </main>
     </div>
   )
@@ -144,7 +153,7 @@ function BusinessCard({ business }: { business: Business }) {
         )}
         <div className="absolute bottom-3 left-3 bg-background/80 text-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1">
           <MapPin className="w-3 h-3" />
-          <span>{business.distance || 0} km</span>
+          <span>{business.distance} km</span>
         </div>
       </div>
       <CardHeader className="p-4 pb-2">

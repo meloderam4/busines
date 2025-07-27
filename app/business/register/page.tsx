@@ -1,13 +1,12 @@
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import BusinessForm from "@/components/business-form"
-import { addBusinessAction } from "@/app/admin/actions"
+import BusinessForm from "@/components/business-form" // Import the new BusinessForm
+import { addBusinessAction } from "@/app/admin/actions" // Re-use the add action from admin
 
 // Extend Window interface to include google (needed by BusinessForm)
 declare global {

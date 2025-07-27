@@ -1,3 +1,5 @@
+// This file defines the interface for User objects.
+
 export interface User {
   id: string
   firstName: string
@@ -6,6 +8,4 @@ export interface User {
   userType: "regular" | "business_owner" | "admin"
   status: "active" | "inactive" | "pending"
   createdAt: string
-  nationalId?: string | null
-  phone?: string | null
 }

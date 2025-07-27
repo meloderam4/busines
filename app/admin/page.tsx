@@ -1,16 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Users, Star, Clock } from "lucide-react"
-import { getBusinesses } from "@/lib/db/businesses"
-import { getUsers } from "@/lib/db/users"
+import { getBusinesses } from "@/lib/mock-data"
+import { getUsers } from "@/lib/mock-users" // Import getUsers
 
 export default async function AdminDashboardPage() {
   const businesses = await getBusinesses()
-  const users = await getUsers()
+  const users = await getUsers() // Fetch users
   const totalBusinesses = businesses.length
   const pendingBusinesses = businesses.filter((b) => b.status === "pending").length
   const approvedBusinesses = businesses.filter((b) => b.status === "approved").length
   const totalReviews = businesses.reduce((sum, b) => sum + b.reviewCount, 0)
-  const totalUsers = users.length
+  const totalUsers = users.length // Get total users
 
   return (
     <div className="space-y-6">
@@ -54,26 +54,18 @@ export default async function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalUsers}</div>
-            <p className="text-xs text-gray-500">Active users</p>
+            <p className="text-xs text-gray-500">+180 this month</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* You can add more sections here, e.g., recent activities, charts */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <p className="text-sm text-gray-600">System is operational and all admin functions are working</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <p className="text-sm text-gray-600">Database connection established</p>
-            </div>
-          </div>
+          <p className="text-gray-600">No recent activity to display.</p>
         </CardContent>
       </Card>
     </div>

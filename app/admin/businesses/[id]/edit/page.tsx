@@ -1,6 +1,6 @@
 "use client"
 
-import { getBusinessById } from "@/lib/db/businesses"
+import { getBusinessById } from "@/lib/mock-data"
 import BusinessForm from "@/components/business-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { notFound } from "next/navigation"

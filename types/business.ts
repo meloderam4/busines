@@ -1,29 +1,5 @@
-export type BusinessStatus = "pending" | "approved" | "rejected"
-
-export interface BusinessDetails {
-  id: string
-  name: string
-  category: string
-  description: string
-  address: string
-  phone: string
-  email?: string | null
-  website?: string | null
-  workingHours?: string | null
-  services: string[] // JSONB in DB
-  images: string[] // JSONB in DB
-  latitude?: number | null
-  longitude?: number | null
-  isPromoted: boolean
-  status: BusinessStatus
-  image: string // Main image URL
-  rating: number
-  reviewCount: number
-  distance?: number // This is a calculated field, not stored in DB
-  reviews: any[] // Placeholder for now, will be detailed later
-  createdAt: string // From DB
-  updatedAt?: string
-}
+// This file defines the interfaces for Business and Review objects.
+// It's good practice to keep type definitions separate for clarity and reusability.
 
 export interface Review {
   id: string
@@ -34,6 +10,27 @@ export interface Review {
   avatar: string
 }
 
-export interface Business extends Omit<BusinessDetails, "reviews"> {
-  // Business is the same as BusinessDetails but without reviews array
+export interface Business {
+  id: string
+  name: string
+  category: string
+  description: string
+  address: string
+  rating: number
+  reviewCount: number
+  distance: number
+  image: string
+  isPromoted: boolean
+  services: string[]
+  phone?: string
+  website?: string
+  workingHours?: string
+  latitude?: number
+  longitude?: number
+  status: "pending" | "approved" | "rejected" // Added status field
+}
+
+export interface BusinessDetails extends Business {
+  images: string[]
+  reviews: Review[]
 }
