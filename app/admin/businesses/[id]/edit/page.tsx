@@ -1,10 +1,6 @@
-"use client"
-
 import { notFound } from "next/navigation"
 import { getBusinessById } from "@/lib/mock-data"
 import BusinessForm from "@/components/business-form"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { updateBusinessAction } from "@/app/admin/actions"
 
 interface EditBusinessPageProps {
   params: {
@@ -12,8 +8,8 @@ interface EditBusinessPageProps {
   }
 }
 
-export default function EditBusinessPage({ params }: EditBusinessPageProps) {
-  const business = getBusinessById(params.id)
+export default async function EditBusinessPage({ params }: EditBusinessPageProps) {
+  const business = await getBusinessById(params.id)
 
   if (!business) {
     notFound()
@@ -21,16 +17,9 @@ export default function EditBusinessPage({ params }: EditBusinessPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Edit Business: {business.name}</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>Business Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BusinessForm initialData={business} onSubmit={updateBusinessAction} />
-          </CardContent>
-        </Card>
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Edit Business</h1>
+        <BusinessForm business={business} />
       </div>
     </div>
   )

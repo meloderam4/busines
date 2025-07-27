@@ -1,103 +1,193 @@
-import { getAllBusinesses } from "@/lib/mock-data"
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, Users, Star, TrendingUp } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Building2, Users, Star, TrendingUp, Plus, Eye } from "lucide-react"
+import Link from "next/link"
+import { getAllBusinesses } from "@/lib/mock-data"
+import { getAllUsers } from "@/lib/mock-users"
+import type { BusinessDetails } from "@/types/business"
+import type { User } from "@/types/user"
 
 export default function AdminDashboard() {
-  const businesses = getAllBusinesses()
-  const totalBusinesses = businesses.length
-  const approvedBusinesses = businesses.filter((b) => b.status === "approved").length
-  const pendingBusinesses = businesses.filter((b) => b.status === "pending").length
-  const promotedBusinesses = businesses.filter((b) => b.isPromoted).length
-  const averageRating = businesses.reduce((sum, b) => sum + b.rating, 0) / businesses.length
+  const [businesses, setBusinesses] = useState<BusinessDetails[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const stats = [
-    {
-      title: "Total Businesses",
-      value: totalBusinesses,
-      icon: Building2,
-      color: "text-blue-600",
-    },
-    {
-      title: "Approved",
-      value: approvedBusinesses,
-      icon: Users,
-      color: "text-green-600",
-    },
-    {
-      title: "Pending Review",
-      value: pendingBusinesses,
-      icon: TrendingUp,
-      color: "text-yellow-600",
-    },
-    {
-      title: "Average Rating",
-      value: averageRating.toFixed(1),
-      icon: Star,
-      color: "text-purple-600",
-    },
-  ]
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [businessData, userData] = await Promise.all([getAllBusinesses(), getAllUsers()])
+        setBusinesses(businessData || [])
+        setUsers(userData || [])
+      } catch (error) {
+        console.error("Error loading data:", error)
+        setBusinesses([])
+        setUsers([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  const stats = {
+    totalBusinesses: businesses.length,
+    approvedBusinesses: businesses.filter((b) => b.status === "approved").length,
+    pendingBusinesses: businesses.filter((b) => b.status === "pending").length,
+    totalUsers: users.length,
+    activeUsers: users.filter((u) => u.isActive).length,
+    averageRating: businesses.length > 0 ? businesses.reduce((acc, b) => acc + b.rating, 0) / businesses.length : 0,
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <div className="flex gap-2">
+          <Link href="/admin/businesses/new">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Business
+            </Button>
+          </Link>
+          <Link href="/admin/users/new">
+            <Button variant="outline">
+              <Plus className="w-4 h-4 mr-2" />
+              Add User
+            </Button>
+          </Link>
+        </div>
+      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <stat.icon className={`w-8 h-8 ${stat.color}`} />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Businesses</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalBusinesses}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.approvedBusinesses} approved, {stats.pendingBusinesses} pending
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">{stats.activeUsers} active users</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</div>
+            <p className="text-xs text-muted-foreground">Across all businesses</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Growth</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+12%</div>
+            <p className="text-xs text-muted-foreground">From last month</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Businesses */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Businesses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {businesses.slice(0, 5).map((business) => (
-              <div key={business.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={business.image || "/placeholder.svg"}
-                    alt={business.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                  <div>
-                    <h3 className="font-medium">{business.name}</h3>
-                    <p className="text-sm text-gray-600">{business.category}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Businesses</CardTitle>
+              <Link href="/admin/businesses">
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {businesses.slice(0, 5).map((business) => (
+                <div key={business.id} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={business.image || "/placeholder.svg"}
+                      alt={business.name}
+                      className="w-10 h-10 rounded-lg object-cover"
+                    />
+                    <div>
+                      <p className="font-medium">{business.name}</p>
+                      <p className="text-sm text-muted-foreground">{business.category}</p>
+                    </div>
                   </div>
+                  <Badge variant={business.status === "approved" ? "default" : "secondary"}>{business.status}</Badge>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Badge
-                    className={
-                      business.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : business.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                    }
-                  >
-                    {business.status}
-                  </Badge>
-                  {business.isPromoted && <Badge variant="secondary">Promoted</Badge>}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Users</CardTitle>
+              <Link href="/admin/users">
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {users.slice(0, 5).map((user) => (
+                <div key={user.id} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

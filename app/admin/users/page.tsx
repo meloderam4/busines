@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trash2, Edit, Plus } from "lucide-react"
 import Link from "next/link"
-import { mockUsersData, deleteUser } from "@/lib/mock-users"
+import { mockUsers, deleteUser } from "@/lib/mock-users"
 import type { User as UserType } from "@/types/user"
 
 export default function UsersPage() {
@@ -16,7 +16,7 @@ export default function UsersPage() {
   useEffect(() => {
     // Load users from mock data
     setTimeout(() => {
-      setUsers(mockUsersData)
+      setUsers(mockUsers)
       setLoading(false)
     }, 500)
   }, [])

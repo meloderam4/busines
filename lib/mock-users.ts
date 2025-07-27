@@ -1,94 +1,97 @@
-import type { User } from "@/types/user"
+export interface User {
+  id: string
+  name: string
+  email: string
+  phone: string
+  role: "admin" | "user" | "moderator"
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
 
-export let mockUsersData: User[] = [
+export const mockUsers: User[] = [
   {
-    id: "user1",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    userType: "regular",
-    status: "active",
-    createdAt: "2023-01-15T10:00:00Z",
+    id: "1",
+    name: "John Doe",
+    email: "john@example.com",
+    phone: "+1 (555) 123-4567",
+    role: "admin",
+    isActive: true,
+    createdAt: "2024-01-15T10:00:00Z",
+    updatedAt: "2024-01-20T14:30:00Z",
   },
   {
-    id: "user2",
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    userType: "business_owner",
-    status: "active",
-    createdAt: "2023-02-20T11:30:00Z",
+    id: "2",
+    name: "Jane Smith",
+    email: "jane@example.com",
+    phone: "+1 (555) 234-5678",
+    role: "user",
+    isActive: true,
+    createdAt: "2024-01-16T11:00:00Z",
+    updatedAt: "2024-01-21T15:30:00Z",
   },
   {
-    id: "user3",
-    firstName: "Admin",
-    lastName: "User",
-    email: "admin@example.com",
-    userType: "admin",
-    status: "active",
-    createdAt: "2023-03-01T09:00:00Z",
-  },
-  {
-    id: "user4",
-    firstName: "Alice",
-    lastName: "Johnson",
-    email: "alice.j@example.com",
-    userType: "regular",
-    status: "pending",
-    createdAt: "2024-07-20T14:00:00Z",
-  },
-  {
-    id: "user5",
-    firstName: "Bob",
-    lastName: "Williams",
-    email: "bob.w@example.com",
-    userType: "business_owner",
-    status: "inactive",
-    createdAt: "2024-06-10T16:45:00Z",
+    id: "3",
+    name: "Mike Johnson",
+    email: "mike@example.com",
+    phone: "+1 (555) 345-6789",
+    role: "moderator",
+    isActive: false,
+    createdAt: "2024-01-17T12:00:00Z",
+    updatedAt: "2024-01-22T16:30:00Z",
   },
 ]
 
-// --- CRUD Operations for Mock User Data ---
-
-export async function getUsers(): Promise<User[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  return mockUsersData
+export async function getAllUsers(): Promise<User[]> {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  return mockUsers
 }
 
-export async function getUserById(id: string): Promise<User | undefined> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  return mockUsersData.find((u) => u.id === id)
+export async function getUserById(id: string): Promise<User | null> {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  return mockUsers.find((user) => user.id === id) || null
 }
 
-export async function addUser(newUser: Omit<User, "id" | "createdAt">): Promise<User> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const userWithDefaults: User = {
-    id: `user${mockUsersData.length + 1}`, // Simple ID generation
+export async function createUser(userData: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User> {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 200))
+
+  const newUser: User = {
+    ...userData,
+    id: (mockUsers.length + 1).toString(),
     createdAt: new Date().toISOString(),
-    ...newUser,
+    updatedAt: new Date().toISOString(),
   }
-  mockUsersData.push(userWithDefaults)
-  return userWithDefaults
+
+  mockUsers.push(newUser)
+  return newUser
 }
 
-export async function updateUser(updatedUser: User): Promise<User | null> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const index = mockUsersData.findIndex((u) => u.id === updatedUser.id)
-  if (index !== -1) {
-    mockUsersData[index] = updatedUser
-    return updatedUser
+export async function updateUser(id: string, userData: Partial<User>): Promise<User | null> {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 200))
+
+  const index = mockUsers.findIndex((user) => user.id === id)
+  if (index === -1) return null
+
+  mockUsers[index] = {
+    ...mockUsers[index],
+    ...userData,
+    updatedAt: new Date().toISOString(),
   }
-  return null
+
+  return mockUsers[index]
 }
 
 export async function deleteUser(id: string): Promise<boolean> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
-  const initialLength = mockUsersData.length
-  mockUsersData = mockUsersData.filter((u) => u.id !== id)
-  return mockUsersData.length < initialLength
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 200))
+
+  const index = mockUsers.findIndex((user) => user.id === id)
+  if (index === -1) return false
+
+  mockUsers.splice(index, 1)
+  return true
 }
