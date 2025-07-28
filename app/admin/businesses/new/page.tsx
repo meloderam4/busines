@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BusinessForm } from "@/components/business-form"
+import BusinessForm from "@/components/business-form"
 import { addBusinessAction } from "@/app/admin/actions"
 
 export default function NewBusinessPage() {

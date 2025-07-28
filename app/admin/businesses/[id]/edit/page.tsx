@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BusinessForm } from "@/components/business-form"
+import BusinessForm from "@/components/business-form"
 import { updateBusinessAction } from "@/app/admin/actions"
 import { getBusinessByIdServer } from "@/lib/db/server-businesses"
 import { notFound } from "next/navigation"
@@ -28,7 +28,7 @@ export default async function EditBusinessPage({ params }: EditBusinessPageProps
           <CardTitle>Business Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <BusinessForm business={business} onSubmit={updateBusinessAction} />
+          <BusinessForm initialData={business} onSubmit={updateBusinessAction} />
         </CardContent>
       </Card>
     </div>

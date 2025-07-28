@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { BusinessDetails } from "@/types/business"
 
 // Extend Window interface to include google
@@ -26,14 +26,33 @@ interface BusinessFormProps {
   onSubmit: (formData: FormData) => Promise<void>
 }
 
+const categories = [
+  { value: "restaurant", label: "Restaurant" },
+  { value: "grocery", label: "Grocery Store" },
+  { value: "automotive", label: "Automotive" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "beauty", label: "Beauty & Spa" },
+  { value: "retail", label: "Retail" },
+  { value: "services", label: "Services" },
+]
+
+const statusOptions = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+]
+
 export default function BusinessForm({ initialData, onSubmit }: BusinessFormProps) {
   const addressInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [category, setCategory] = useState(initialData?.category || "")
+  const [status, setStatus] = useState(initialData?.status || "pending")
+  const [isPromoted, setIsPromoted] = useState(initialData?.isPromoted || false)
 
   const [formData, setFormData] = useState({
     businessName: initialData?.name || "",
-    category: initialData?.category || "",
     description: initialData?.description || "",
     address: initialData?.address || "",
     phone: initialData?.phone || "",
@@ -44,23 +63,7 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
     images: initialData?.images || [],
     latitude: initialData?.latitude || null,
     longitude: initialData?.longitude || null,
-    isPromoted: initialData?.isPromoted || false,
-    status: initialData?.status || "pending",
   })
-  const [newService, setNewService] = useState("")
-
-  const categories = [
-    "Restaurant & Cafe",
-    "Beauty & Salon",
-    "Shopping & Retail",
-    "Automotive Services",
-    "Medical & Health",
-    "Educational",
-    "Sports",
-    "Real Estate",
-    "Transportation",
-    "Other",
-  ]
 
   useEffect(() => {
     if (addressInputRef.current && window.google) {
@@ -90,13 +93,12 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
     }
   }, [])
 
-  const handleAddService = () => {
-    if (newService.trim() && !formData.services.includes(newService.trim())) {
+  const handleAddService = (service: string) => {
+    if (service.trim() && !formData.services.includes(service.trim())) {
       setFormData((prev) => ({
         ...prev,
-        services: [...prev.services, newService.trim()],
+        services: [...prev.services, service.trim()],
       }))
-      setNewService("")
     }
   }
 
@@ -109,7 +111,7 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setIsSubmitting(true)
     setError(null)
 
     try {
@@ -118,7 +120,7 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
 
       // Manually set all the form data to ensure it's properly included
       data.set("businessName", formData.businessName)
-      data.set("category", formData.category)
+      data.set("category", category)
       data.set("description", formData.description)
       data.set("address", formData.address)
       data.set("phone", formData.phone)
@@ -129,8 +131,8 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
       data.set("images", JSON.stringify(formData.images))
       data.set("latitude", formData.latitude?.toString() || "")
       data.set("longitude", formData.longitude?.toString() || "")
-      data.set("isPromoted", formData.isPromoted.toString())
-      data.set("status", formData.status)
+      data.set("isPromoted", isPromoted.toString())
+      data.set("status", status)
 
       // For existing business, also include original data
       if (initialData) {
@@ -162,7 +164,7 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
       // Only set error for actual errors, not redirects
       setError(err.message || "An error occurred while saving the business.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -200,24 +202,19 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="category" className="text-left block mb-2">
                 Category *
               </Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
-                name="category"
-                required
-              >
+              <Select value={category} onValueChange={setCategory} name="category" required>
                 <SelectTrigger className="text-left">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <input type="hidden" name="category" value={formData.category} />
+              <input type="hidden" name="category" value={category} />
             </div>
 
             <div>
@@ -336,13 +333,13 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
           <CardContent>
             <div className="flex gap-2 mb-4">
               <Input
-                value={newService}
-                onChange={(e) => setNewService(e.target.value)}
+                value={formData.services.join(", ")}
+                onChange={(e) => handleAddService(e.target.value)}
                 placeholder="Enter new service"
                 className="text-left"
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddService())}
+                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddService(e.target.value))}
               />
-              <Button type="button" onClick={handleAddService}>
+              <Button type="button" onClick={() => handleAddService(formData.services.join(", "))}>
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -403,41 +400,83 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="status" className="text-left block mb-2">
                 Status
               </Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, status: value as BusinessDetails["status"] }))
-                }
-                name="status"
-              >
+              <Select value={status} onValueChange={setStatus} name="status">
                 <SelectTrigger className="text-left">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <input type="hidden" name="status" value={formData.status} />
+              <input type="hidden" name="status" value={status} />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="isPromoted" className="text-left">
                 Promote Business
               </Label>
-              <Switch
-                id="isPromoted"
-                checked={formData.isPromoted}
-                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isPromoted: checked }))}
-                name="isPromoted"
-              />
+              <Checkbox id="isPromoted" checked={isPromoted} onCheckedChange={setIsPromoted} name="isPromoted" />
             </div>
           </CardContent>
         </Card>
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>
-          {loading ? "Saving..." : initialData ? "Update Business" : "Create Business"}
-        </Button>
+        {/* Location */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Location</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="latitude">Latitude</Label>
+                <Input
+                  id="latitude"
+                  name="latitude"
+                  type="number"
+                  step="any"
+                  value={formData.latitude?.toString() || ""}
+                  placeholder="40.7128"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="longitude">Longitude</Label>
+                <Input
+                  id="longitude"
+                  name="longitude"
+                  type="number"
+                  step="any"
+                  value={formData.longitude?.toString() || ""}
+                  placeholder="-74.0060"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Image URL */}
+        <div className="space-y-2">
+          <Label htmlFor="image">Image URL</Label>
+          <Input
+            id="image"
+            name="image"
+            type="url"
+            value={formData.images[0] || ""}
+            placeholder="/images/business.jpg"
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <Button type="submit" disabled={isSubmitting} className="flex-1">
+            {isSubmitting ? "Saving..." : initialData ? "Update Business" : "Add Business"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => window.history.back()}>
+            Cancel
+          </Button>
+        </div>
       </form>
     </div>
   )

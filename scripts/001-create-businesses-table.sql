@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS businesses (
   website VARCHAR(255),
   working_hours TEXT,
   services TEXT[],
-  images TEXT[],
   latitude DECIMAL(10, 8),
   longitude DECIMAL(11, 8),
   is_promoted BOOLEAN DEFAULT FALSE,
@@ -26,24 +25,13 @@ CREATE TABLE IF NOT EXISTS businesses (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_businesses_category ON businesses(category);
 CREATE INDEX IF NOT EXISTS idx_businesses_status ON businesses(status);
+CREATE INDEX IF NOT EXISTS idx_businesses_location ON businesses(latitude, longitude);
 CREATE INDEX IF NOT EXISTS idx_businesses_rating ON businesses(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_businesses_created_at ON businesses(created_at DESC);
 
 -- Enable Row Level Security
 ALTER TABLE businesses ENABLE ROW LEVEL SECURITY;
 
--- Create policies
-CREATE POLICY "Anyone can view approved businesses" ON businesses
-  FOR SELECT USING (status = 'approved');
-
-CREATE POLICY "Authenticated users can view all businesses" ON businesses
-  FOR SELECT USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Authenticated users can insert businesses" ON businesses
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "Authenticated users can update their businesses" ON businesses
-  FOR UPDATE USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Authenticated users can delete their businesses" ON businesses
-  FOR DELETE USING (auth.role() = 'authenticated');
+-- Create policy to allow all operations for now (you can restrict this later)
+CREATE POLICY "Allow all operations on businesses" ON businesses
+  FOR ALL USING (true);

@@ -109,42 +109,6 @@ export async function deleteBusiness(id: string): Promise<boolean> {
   return true
 }
 
-export async function getBusinessesByCategory(category: string): Promise<BusinessDetails[]> {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from("businesses")
-    .select("*")
-    .eq("category", category)
-    .eq("status", "approved")
-    .order("rating", { ascending: false })
-
-  if (error) {
-    console.error("Error fetching businesses by category:", error)
-    return []
-  }
-
-  return data.map(transformBusinessFromDB)
-}
-
-export async function searchBusinesses(query: string): Promise<BusinessDetails[]> {
-  const supabase = createClient()
-
-  const { data, error } = await supabase
-    .from("businesses")
-    .select("*")
-    .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
-    .eq("status", "approved")
-    .order("rating", { ascending: false })
-
-  if (error) {
-    console.error("Error searching businesses:", error)
-    return []
-  }
-
-  return data.map(transformBusinessFromDB)
-}
-
 // Transform database row to BusinessDetails interface
 function transformBusinessFromDB(data: any): BusinessDetails {
   return {

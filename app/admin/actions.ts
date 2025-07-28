@@ -18,8 +18,8 @@ export async function addBusinessAction(formData: FormData) {
       website: formData.get("website") as string,
       workingHours: formData.get("workingHours") as string,
       services: formData.get("services") ? (formData.get("services") as string).split(",").map((s) => s.trim()) : [],
-      latitude: formData.get("latitude") ? Number.parseFloat(formData.get("latitude") as string) : undefined,
-      longitude: formData.get("longitude") ? Number.parseFloat(formData.get("longitude") as string) : undefined,
+      latitude: Number.parseFloat(formData.get("latitude") as string) || 0,
+      longitude: Number.parseFloat(formData.get("longitude") as string) || 0,
       isPromoted: formData.get("isPromoted") === "true",
       status: (formData.get("status") as string) || "pending",
       image: (formData.get("image") as string) || "/placeholder.svg?height=400&width=600",
@@ -53,8 +53,8 @@ export async function updateBusinessAction(formData: FormData) {
       workingHours: formData.get("workingHours") as string,
       services: formData.get("services") ? (formData.get("services") as string).split(",").map((s) => s.trim()) : [],
       images: [],
-      latitude: formData.get("latitude") ? Number.parseFloat(formData.get("latitude") as string) : undefined,
-      longitude: formData.get("longitude") ? Number.parseFloat(formData.get("longitude") as string) : undefined,
+      latitude: Number.parseFloat(formData.get("latitude") as string) || 0,
+      longitude: Number.parseFloat(formData.get("longitude") as string) || 0,
       isPromoted: formData.get("isPromoted") === "true",
       status: (formData.get("status") as string) || "pending",
       image: (formData.get("image") as string) || "/placeholder.svg?height=400&width=600",
@@ -77,8 +77,6 @@ export async function updateBusinessAction(formData: FormData) {
 }
 
 export async function deleteBusinessAction(id: string) {
-  console.log("Deleting business with id:", id)
-
   try {
     const result = await deleteBusinessServer(id)
     console.log("Business deleted successfully:", result)
