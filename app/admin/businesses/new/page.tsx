@@ -1,15 +1,22 @@
 "use client"
 
-import BusinessForm from "@/components/business-form"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BusinessForm } from "@/components/business-form"
 import { addBusinessAction } from "@/app/admin/actions"
 
 export default function NewBusinessPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Add New Business</h1>
-        <BusinessForm onSubmit={addBusinessAction} />
-      </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold">Add New Business</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Business Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BusinessForm onSubmit={addBusinessAction} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

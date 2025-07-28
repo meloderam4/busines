@@ -1,59 +1,17 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { getAllBusinesses } from "@/lib/mock-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2 } from "lucide-react"
+import { Plus, Edit, Trash2, Eye } from "lucide-react"
 import Link from "next/link"
-import type { BusinessDetails } from "@/types/business"
+import { getAllBusinessesServer } from "@/lib/db/server-businesses"
 
-export default function AdminBusinessesPage() {
-  const [businesses, setBusinesses] = useState<BusinessDetails[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loadBusinesses = async () => {
-      try {
-        const data = await getAllBusinesses()
-        setBusinesses(data || [])
-      } catch (error) {
-        console.error("Error loading businesses:", error)
-        setBusinesses([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadBusinesses()
-  }, [])
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-100 text-green-800"
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
+export default async function AdminBusinessesPage() {
+  const businesses = await getAllBusinessesServer()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Manage Businesses</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Businesses</h1>
         <Link href="/admin/businesses/new">
           <Button>
             <Plus className="w-4 h-4 mr-2" />
@@ -62,71 +20,98 @@ export default function AdminBusinessesPage() {
         </Link>
       </div>
 
-      {businesses.length === 0 ? (
-        <div className="text-center py-12">
-          <Plus className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No businesses found</h3>
-          <p className="text-muted-foreground mb-4">Get started by adding your first business.</p>
-          <Link href="/admin/businesses/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add First Business
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          {businesses.map((business) => (
+      <div className="grid gap-6">
+        {businesses.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-gray-500 mb-4">No businesses found.</p>
+              <Link href="/admin/businesses/new">
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Business
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
+          businesses.map((business) => (
             <Card key={business.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-xl">{business.name}</CardTitle>
-                    <p className="text-gray-600 mt-1">{business.category}</p>
+                    <CardTitle className="flex items-center gap-2">
+                      {business.name}
+                      {business.isPromoted && <Badge variant="secondary">Featured</Badge>}
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">{business.category}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(business.status)}>{business.status}</Badge>
-                    {business.isPromoted && <Badge variant="secondary">Promoted</Badge>}
-                  </div>
+                  <Badge
+                    variant={
+                      business.status === "approved"
+                        ? "default"
+                        : business.status === "pending"
+                          ? "secondary"
+                          : "destructive"
+                    }
+                  >
+                    {business.status}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-600 mb-2">{business.description}</p>
+                    <p className="text-sm">
                       <strong>Address:</strong> {business.address}
                     </p>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm">
                       <strong>Phone:</strong> {business.phone}
                     </p>
-                    <p className="text-sm text-gray-600 mb-2">
-                      <strong>Email:</strong> {business.email}
-                    </p>
+                    {business.email && (
+                      <p className="text-sm">
+                        <strong>Email:</strong> {business.email}
+                      </p>
+                    )}
+                    {business.website && (
+                      <p className="text-sm">
+                        <strong>Website:</strong>{" "}
+                        <a href={business.website} target="_blank" rel="noopener noreferrer" className="text-blue-600">
+                          {business.website}
+                        </a>
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    {business.workingHours && (
+                      <p className="text-sm mb-2">
+                        <strong>Hours:</strong> {business.workingHours}
+                      </p>
+                    )}
+                    <p className="text-sm mb-2">
                       <strong>Rating:</strong> {business.rating}/5 ({business.reviewCount} reviews)
                     </p>
-                    <p className="text-sm text-gray-600 mb-2">
-                      <strong>Working Hours:</strong> {business.workingHours}
-                    </p>
+                    {business.services && business.services.length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-sm font-medium mb-1">Services:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {business.services.map((service, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {service}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Services:</strong>
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {business.services.map((service, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {service}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex gap-2 mt-4">
+                  <Link href={`/business/${business.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Button>
+                  </Link>
                   <Link href={`/admin/businesses/${business.id}/edit`}>
                     <Button variant="outline" size="sm">
                       <Edit className="w-4 h-4 mr-1" />
@@ -140,9 +125,9 @@ export default function AdminBusinessesPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   )
 }

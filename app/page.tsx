@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MapPin, Star, Filter, Navigation, Eye, Phone, Clock } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { getAllBusinesses, getBusinessesByCategory, searchBusinesses } from "@/lib/db/businesses"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAllBusinesses, getBusinessesByCategory, searchBusinesses } from "@/lib/mock-data"
-import type { BusinessDetails } from "@/types/business"
+import { Star, MapPin, Phone, Clock, Navigation, Eye, Search, Filter } from "lucide-react"
 import Link from "next/link"
+import type { BusinessDetails } from "@/types/business"
 
 export default function HomePage() {
   const [businesses, setBusinesses] = useState<BusinessDetails[]>([])
