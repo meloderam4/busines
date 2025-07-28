@@ -6,42 +6,41 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Link from "next/link"
-import Image from "next/image"
 import { getAllBusinesses } from "@/lib/db/businesses"
 import type { BusinessDetails } from "@/types/business"
 
 const categories = [
-  { value: "all", label: "All Categories" },
-  { value: "restaurant", label: "Restaurants" },
-  { value: "grocery", label: "Grocery Stores" },
-  { value: "automotive", label: "Automotive" },
-  { value: "healthcare", label: "Healthcare" },
-  { value: "beauty", label: "Beauty & Spa" },
-  { value: "retail", label: "Retail" },
-  { value: "services", label: "Services" },
+  "All",
+  "Restaurant & Cafe",
+  "Beauty & Salon",
+  "Shopping & Retail",
+  "Automotive Services",
+  "Medical & Health",
+  "Educational",
+  "Sports",
+  "Real Estate",
+  "Transportation",
+  "Other",
 ]
 
 export default function HomePage() {
   const [businesses, setBusinesses] = useState<BusinessDetails[]>([])
   const [filteredBusinesses, setFilteredBusinesses] = useState<BusinessDetails[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadBusinesses = async () => {
       try {
         setLoading(true)
-        setError(null)
         const data = await getAllBusinesses()
-        setBusinesses(data)
-        setFilteredBusinesses(data)
+        // Only show approved businesses on homepage
+        const approvedBusinesses = data.filter((business) => business.status === "approved")
+        setBusinesses(approvedBusinesses)
+        setFilteredBusinesses(approvedBusinesses)
       } catch (error) {
         console.error("Error loading businesses:", error)
-        setError("Failed to load businesses")
       } finally {
         setLoading(false)
       }
@@ -53,27 +52,31 @@ export default function HomePage() {
   useEffect(() => {
     let filtered = businesses
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (business) =>
-          business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          business.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          business.address.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
     // Filter by category
-    if (selectedCategory !== "all") {
+    if (selectedCategory !== "All") {
       filtered = filtered.filter((business) => business.category === selectedCategory)
     }
 
-    setFilteredBusinesses(filtered)
-  }, [businesses, searchTerm, selectedCategory])
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (business) =>
+          business.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          business.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          business.category.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    }
 
-  const handleGetDirections = (business: BusinessDetails) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(business.address)}`
-    window.open(url, "_blank")
+    setFilteredBusinesses(filtered)
+  }, [businesses, selectedCategory, searchQuery])
+
+  const handleGetDirections = (address: string) => {
+    const encodedAddress = encodeURIComponent(address)
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, "_blank")
+  }
+
+  const handleViewDetails = (businessId: string) => {
+    window.location.href = `/business/${businessId}`
   }
 
   if (loading) {
@@ -88,153 +91,161 @@ export default function HomePage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <div className="text-red-500 mb-4">{error}</div>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Discover Local Businesses</h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Find the best restaurants, services, and shops in your neighborhood
-          </p>
+      <div className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Discover Local Businesses</h1>
+          <p className="text-xl text-gray-600 mb-8">Find the best local services and businesses in your area</p>
 
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto bg-white rounded-lg p-2 shadow-lg">
-            <div className="flex flex-col md:flex-row gap-2">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  placeholder="Search businesses..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-0 focus:ring-0 text-gray-900"
-                />
-              </div>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full md:w-48 border-0 focus:ring-0 text-gray-900">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search businesses, services, or categories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-3 text-lg"
+              />
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Featured Businesses */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Featured Businesses</h2>
-
-          {filteredBusinesses.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No businesses found matching your criteria</p>
+          {/* Category Filter */}
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            {categories.map((category) => (
               <Button
-                onClick={() => {
-                  setSearchTerm("")
-                  setSelectedCategory("all")
-                }}
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category)}
+                className="text-sm"
               >
-                Clear Filters
+                {category}
               </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredBusinesses.map((business) => (
-                <Card key={business.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
-                  <div className="relative h-48 overflow-hidden">
-                    <Link href={`/business/${business.id}`}>
-                      <Image
-                        src={business.image || "/placeholder.svg"}
-                        alt={business.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      />
-                    </Link>
-                    {business.isPromoted && (
-                      <Badge className="absolute top-2 right-2 bg-yellow-500 hover:bg-yellow-600">Featured</Badge>
-                    )}
+            ))}
+          </div>
+        </div>
+
+        {/* Results */}
+        <div className="mb-6">
+          <p className="text-gray-600">
+            {filteredBusinesses.length} business{filteredBusinesses.length !== 1 ? "es" : ""} found
+            {selectedCategory !== "All" && ` in ${selectedCategory}`}
+          </p>
+        </div>
+
+        {/* Business Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBusinesses.map((business) => (
+            <Card key={business.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+              <div className="relative">
+                <img
+                  src={business.image || "/placeholder.svg"}
+                  alt={business.name}
+                  className="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => handleViewDetails(business.id)}
+                />
+                {business.isPromoted && (
+                  <Badge className="absolute top-2 right-2 bg-yellow-500 hover:bg-yellow-600">Promoted</Badge>
+                )}
+              </div>
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h3
+                    className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => handleViewDetails(business.id)}
+                  >
+                    {business.name}
+                  </h3>
+                  <div className="flex items-center">
+                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                    <span className="text-sm text-gray-600 ml-1">
+                      {business.rating} ({business.reviewCount})
+                    </span>
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <Link href={`/business/${business.id}`}>
-                        <h3 className="text-xl font-semibold hover:text-blue-600 transition-colors cursor-pointer">
-                          {business.name}
-                        </h3>
-                      </Link>
-                      <Badge variant="outline" className="capitalize">
-                        {business.category}
-                      </Badge>
+                </div>
+
+                <Badge variant="secondary" className="mb-2">
+                  {business.category}
+                </Badge>
+
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{business.description}</p>
+
+                <div className="space-y-2 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span className="truncate">{business.address}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Phone className="w-4 h-4 mr-2" />
+                    <span>{business.phone}</span>
+                  </div>
+                  {business.website && (
+                    <div className="flex items-center">
+                      <Globe className="w-4 h-4 mr-2" />
+                      <a
+                        href={business.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline truncate"
+                      >
+                        {business.website}
+                      </a>
                     </div>
-
-                    <div className="flex items-center mb-2">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm font-medium">{business.rating}</span>
-                      <span className="ml-1 text-sm text-gray-500">({business.reviewCount} reviews)</span>
+                  )}
+                  {business.workingHours && (
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-2" />
+                      <span className="truncate">{business.workingHours}</span>
                     </div>
+                  )}
+                </div>
 
-                    <p className="text-gray-600 mb-4 line-clamp-2">{business.description}</p>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <MapPin className="w-4 h-4 mr-2" />
-                        {business.address}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Phone className="w-4 h-4 mr-2" />
-                        {business.phone}
-                      </div>
-                      {business.workingHours && (
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {business.workingHours}
-                        </div>
+                {business.services.length > 0 && (
+                  <div className="mt-3">
+                    <div className="flex flex-wrap gap-1">
+                      {business.services.slice(0, 3).map((service, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {service}
+                        </Badge>
+                      ))}
+                      {business.services.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{business.services.length - 3} more
+                        </Badge>
                       )}
                     </div>
+                  </div>
+                )}
 
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-transparent"
-                        onClick={() => handleGetDirections(business)}
-                      >
-                        <MapPin className="w-4 h-4 mr-1" />
-                        Directions
-                      </Button>
-                      <Link href={`/business/${business.id}`} className="flex-1">
-                        <Button size="sm" className="w-full">
-                          <Globe className="w-4 h-4 mr-1" />
-                          Details
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleGetDirections(business.address)}
+                    className="flex-1"
+                  >
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Directions
+                  </Button>
+                  <Button size="sm" onClick={() => handleViewDetails(business.id)} className="flex-1">
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </section>
+
+        {filteredBusinesses.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg mb-4">No businesses found</p>
+            <p className="text-gray-400">Try adjusting your search criteria or browse all categories</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

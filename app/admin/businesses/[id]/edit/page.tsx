@@ -1,10 +1,10 @@
 "use client"
 
+import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import BusinessForm from "@/components/business-form"
 import { updateBusinessAction } from "@/app/admin/actions"
 import { getBusinessByIdServer } from "@/lib/db/server-businesses"
-import { notFound } from "next/navigation"
 
 interface EditBusinessPageProps {
   params: {
