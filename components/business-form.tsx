@@ -17,78 +17,50 @@ interface BusinessFormProps {
   onSubmit: (formData: FormData) => Promise<void>
 }
 
+const categories = [
+  { value: "restaurant", label: "Restaurant" },
+  { value: "grocery", label: "Grocery Store" },
+  { value: "automotive", label: "Automotive" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "beauty", label: "Beauty & Spa" },
+  { value: "fitness", label: "Fitness" },
+  { value: "education", label: "Education" },
+  { value: "retail", label: "Retail" },
+  { value: "services", label: "Services" },
+]
+
+const statusOptions = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+]
+
 export default function BusinessForm({ initialData, onSubmit }: BusinessFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
-    name: initialData?.name || "",
-    category: initialData?.category || "",
-    description: initialData?.description || "",
-    address: initialData?.address || "",
-    phone: initialData?.phone || "",
-    email: initialData?.email || "",
-    website: initialData?.website || "",
-    workingHours: initialData?.workingHours || "",
-    services: initialData?.services?.join(", ") || "",
-    latitude: initialData?.latitude || 0,
-    longitude: initialData?.longitude || 0,
-    isPromoted: initialData?.isPromoted || false,
-    status: initialData?.status || "pending",
-    image: initialData?.image || "/placeholder.svg?height=400&width=600",
-  })
-
-  const categories = [
-    { value: "restaurant", label: "Restaurant" },
-    { value: "grocery", label: "Grocery Store" },
-    { value: "automotive", label: "Automotive" },
-    { value: "healthcare", label: "Healthcare" },
-    { value: "beauty", label: "Beauty & Spa" },
-    { value: "retail", label: "Retail" },
-    { value: "services", label: "Services" },
-  ]
-
-  const statusOptions = [
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "rejected", label: "Rejected" },
-  ]
+  const [category, setCategory] = useState(initialData?.category || "")
+  const [status, setStatus] = useState(initialData?.status || "pending")
+  const [isPromoted, setIsPromoted] = useState(initialData?.isPromoted || false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const form = new FormData()
+    const form = new FormData(e.currentTarget)
 
-    // Add all form fields
+    // Add the select field values to formData
+    form.set("category", category)
+    form.set("status", status)
+    form.set("isPromoted", isPromoted.toString())
+
     if (initialData?.id) {
       form.append("id", initialData.id)
-    }
-    form.append("name", formData.name)
-    form.append("category", formData.category)
-    form.append("description", formData.description)
-    form.append("address", formData.address)
-    form.append("phone", formData.phone)
-    form.append("email", formData.email)
-    form.append("website", formData.website)
-    form.append("workingHours", formData.workingHours)
-    form.append("services", formData.services)
-    form.append("latitude", formData.latitude.toString())
-    form.append("longitude", formData.longitude.toString())
-    form.append("isPromoted", formData.isPromoted.toString())
-    form.append("status", formData.status)
-    form.append("image", formData.image)
-
-    // Add existing data for updates
-    if (initialData) {
-      form.append("rating", (initialData.rating || 0).toString())
-      form.append("reviewCount", (initialData.reviewCount || 0).toString())
-      form.append("distance", (initialData.distance || 0).toString())
+      form.append("rating", initialData.rating?.toString() || "0")
+      form.append("reviewCount", initialData.reviewCount?.toString() || "0")
+      form.append("distance", initialData.distance?.toString() || "0")
     }
 
     await onSubmit(form)
-  }
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setIsSubmitting(false)
   }
 
   return (
@@ -103,22 +75,23 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="name">Business Name *</Label>
               <Input
                 id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
+                name="name"
+                defaultValue={initialData?.name}
                 required
+                placeholder="Enter business name"
               />
             </div>
 
             <div>
               <Label htmlFor="category">Category *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+              <Select value={category} onValueChange={setCategory} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -129,8 +102,9 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                name="description"
+                defaultValue={initialData?.description}
+                placeholder="Describe your business"
                 rows={3}
               />
             </div>
@@ -139,9 +113,10 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="address">Address *</Label>
               <Textarea
                 id="address"
-                value={formData.address}
-                onChange={(e) => handleInputChange("address", e.target.value)}
+                name="address"
+                defaultValue={initialData?.address}
                 required
+                placeholder="Enter full address"
                 rows={2}
               />
             </div>
@@ -154,22 +129,18 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
-              />
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" name="phone" type="tel" defaultValue={initialData?.phone} placeholder="+1-555-0123" />
             </div>
 
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
+                defaultValue={initialData?.email}
+                placeholder="contact@business.com"
               />
             </div>
 
@@ -177,19 +148,21 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
+                name="website"
                 type="url"
-                value={formData.website}
-                onChange={(e) => handleInputChange("website", e.target.value)}
+                defaultValue={initialData?.website}
+                placeholder="https://www.business.com"
               />
             </div>
 
             <div>
               <Label htmlFor="workingHours">Working Hours</Label>
-              <Input
+              <Textarea
                 id="workingHours"
-                value={formData.workingHours}
-                onChange={(e) => handleInputChange("workingHours", e.target.value)}
-                placeholder="e.g., Mon-Fri 9:00 AM - 6:00 PM"
+                name="workingHours"
+                defaultValue={initialData?.workingHours}
+                placeholder="Mon-Fri: 9:00 AM - 6:00 PM"
+                rows={2}
               />
             </div>
           </CardContent>
@@ -206,9 +179,9 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="services">Services (comma-separated)</Label>
               <Textarea
                 id="services"
-                value={formData.services}
-                onChange={(e) => handleInputChange("services", e.target.value)}
-                placeholder="e.g., Delivery, Takeout, Dine-in"
+                name="services"
+                defaultValue={initialData?.services?.join(", ")}
+                placeholder="Service 1, Service 2, Service 3"
                 rows={2}
               />
             </div>
@@ -218,20 +191,22 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
                 <Label htmlFor="latitude">Latitude</Label>
                 <Input
                   id="latitude"
+                  name="latitude"
                   type="number"
                   step="any"
-                  value={formData.latitude}
-                  onChange={(e) => handleInputChange("latitude", Number.parseFloat(e.target.value) || 0)}
+                  defaultValue={initialData?.latitude}
+                  placeholder="40.7128"
                 />
               </div>
               <div>
                 <Label htmlFor="longitude">Longitude</Label>
                 <Input
                   id="longitude"
+                  name="longitude"
                   type="number"
                   step="any"
-                  value={formData.longitude}
-                  onChange={(e) => handleInputChange("longitude", Number.parseFloat(e.target.value) || 0)}
+                  defaultValue={initialData?.longitude}
+                  placeholder="-74.0060"
                 />
               </div>
             </div>
@@ -240,9 +215,10 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
               <Label htmlFor="image">Image URL</Label>
               <Input
                 id="image"
-                value={formData.image}
-                onChange={(e) => handleInputChange("image", e.target.value)}
-                placeholder="/placeholder.svg?height=400&width=600"
+                name="image"
+                type="url"
+                defaultValue={initialData?.image}
+                placeholder="https://example.com/image.jpg"
               />
             </div>
           </CardContent>
@@ -255,14 +231,14 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+              <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -270,11 +246,7 @@ export default function BusinessForm({ initialData, onSubmit }: BusinessFormProp
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch
-                id="isPromoted"
-                checked={formData.isPromoted}
-                onCheckedChange={(checked) => handleInputChange("isPromoted", checked)}
-              />
+              <Switch id="isPromoted" checked={isPromoted} onCheckedChange={setIsPromoted} />
               <Label htmlFor="isPromoted">Promoted Business</Label>
             </div>
           </CardContent>

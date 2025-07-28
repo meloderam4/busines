@@ -77,12 +77,11 @@ export async function deleteBusinessAction(id: string) {
     console.log("Deleting business:", id)
 
     const result = await deleteBusinessServer(id)
+    console.log("Business deleted successfully:", result)
 
     if (!result) {
       throw new Error("Failed to delete business")
     }
-
-    console.log("Business deleted successfully")
   } catch (error) {
     console.error("Error in deleteBusinessAction:", error)
     throw error
