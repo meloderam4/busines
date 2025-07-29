@@ -4,15 +4,17 @@ import type { BusinessDetails } from "@/types/business"
 export async function getAllBusinessesServer(): Promise<BusinessDetails[]> {
   try {
     const supabase = await createClient()
+    console.log("Fetching all businesses from server...")
 
     const { data, error } = await supabase.from("businesses").select("*").order("created_at", { ascending: false })
 
     if (error) {
-      console.error("Error fetching businesses:", error)
+      console.error("Supabase error in getAllBusinessesServer:", error)
       return []
     }
 
-    return data.map(transformBusinessFromDB)
+    console.log(`Found ${data?.length || 0} businesses`)
+    return data ? data.map(transformBusinessFromDB) : []
   } catch (error) {
     console.error("Error in getAllBusinessesServer:", error)
     return []
@@ -22,14 +24,21 @@ export async function getAllBusinessesServer(): Promise<BusinessDetails[]> {
 export async function getBusinessByIdServer(id: string): Promise<BusinessDetails | null> {
   try {
     const supabase = await createClient()
+    console.log("Fetching business by ID from server:", id)
 
     const { data, error } = await supabase.from("businesses").select("*").eq("id", id).single()
 
     if (error) {
-      console.error("Error fetching business:", error)
+      console.error("Supabase error in getBusinessByIdServer:", error)
       return null
     }
 
+    if (!data) {
+      console.log("No business found with ID:", id)
+      return null
+    }
+
+    console.log("Found business:", data.name)
     return transformBusinessFromDB(data)
   } catch (error) {
     console.error("Error in getBusinessByIdServer:", error)
@@ -42,6 +51,7 @@ export async function addBusinessServer(
 ): Promise<BusinessDetails> {
   try {
     const supabase = await createClient()
+    console.log("Adding business to server:", businessData.name)
 
     const dbData = {
       name: businessData.name,
@@ -70,6 +80,7 @@ export async function addBusinessServer(
       throw new Error(`Failed to add business: ${error.message}`)
     }
 
+    console.log("Successfully added business:", data.name)
     return transformBusinessFromDB(data)
   } catch (error) {
     console.error("Error in addBusinessServer:", error)
@@ -80,6 +91,7 @@ export async function addBusinessServer(
 export async function updateBusinessServer(businessData: BusinessDetails): Promise<BusinessDetails> {
   try {
     const supabase = await createClient()
+    console.log("Updating business on server:", businessData.name)
 
     const dbData = {
       name: businessData.name,
@@ -109,6 +121,7 @@ export async function updateBusinessServer(businessData: BusinessDetails): Promi
       throw new Error(`Failed to update business: ${error.message}`)
     }
 
+    console.log("Successfully updated business:", data.name)
     return transformBusinessFromDB(data)
   } catch (error) {
     console.error("Error in updateBusinessServer:", error)
@@ -119,6 +132,7 @@ export async function updateBusinessServer(businessData: BusinessDetails): Promi
 export async function deleteBusinessServer(id: string): Promise<boolean> {
   try {
     const supabase = await createClient()
+    console.log("Deleting business from server:", id)
 
     const { error } = await supabase.from("businesses").delete().eq("id", id)
 
@@ -127,6 +141,7 @@ export async function deleteBusinessServer(id: string): Promise<boolean> {
       return false
     }
 
+    console.log("Successfully deleted business:", id)
     return true
   } catch (error) {
     console.error("Error in deleteBusinessServer:", error)
@@ -140,16 +155,16 @@ function transformBusinessFromDB(data: any): BusinessDetails {
     id: data.id,
     name: data.name,
     category: data.category,
-    description: data.description,
+    description: data.description || "",
     address: data.address,
-    phone: data.phone,
+    phone: data.phone || "",
     email: data.email || "",
     website: data.website || "",
     workingHours: data.working_hours || "",
     services: data.services || [],
     images: data.images || [],
-    latitude: data.latitude,
-    longitude: data.longitude,
+    latitude: data.latitude || null,
+    longitude: data.longitude || null,
     isPromoted: data.is_promoted || false,
     status: data.status || "pending",
     image: data.image || "/placeholder.svg?height=400&width=600",
