@@ -21,6 +21,9 @@ export default function BusinessRegisterForm({ user, profile }: BusinessRegister
   const [isPremium, setIsPremium] = useState(false)
   const [showUpgradeAlert, setShowUpgradeAlert] = useState(false)
 
+  console.log("BusinessRegisterForm - User:", user?.email)
+  console.log("BusinessRegisterForm - Profile:", profile)
+
   // Check if user is business owner
   const isBusinessOwner = profile?.user_type === "business_owner"
 
@@ -52,12 +55,21 @@ export default function BusinessRegisterForm({ user, profile }: BusinessRegister
   }
 
   const handleBusinessRegistration = async (formData: FormData) => {
-    // Add user ID to form data
-    formData.set("userId", user.id)
-    formData.set("userEmail", user.email)
+    try {
+      // Add user ID to form data
+      formData.set("userId", user.id)
+      formData.set("userEmail", user.email)
 
-    // Call the business registration action
-    await addBusinessAction(formData)
+      console.log("Submitting business registration...")
+
+      // Call the business registration action
+      await addBusinessAction(formData)
+
+      console.log("Business registration successful!")
+    } catch (error) {
+      console.error("Business registration error:", error)
+      throw error
+    }
   }
 
   // Show upgrade prompt for regular users
