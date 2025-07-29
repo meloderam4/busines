@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/client"
 import type { BusinessDetails } from "@/types/business"
 
+// Function to validate UUID format
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}
+
 export async function getAllBusinesses(): Promise<BusinessDetails[]> {
   try {
     const supabase = createClient()
@@ -34,6 +40,12 @@ export async function getAllBusinesses(): Promise<BusinessDetails[]> {
 
 export async function getBusinessById(id: string): Promise<BusinessDetails | null> {
   try {
+    // Validate UUID format before making database call
+    if (!isValidUUID(id)) {
+      console.error("Invalid UUID format:", id)
+      throw new Error("Invalid business ID format")
+    }
+
     const supabase = createClient()
     console.log("Fetching business by ID:", id)
 
@@ -41,13 +53,17 @@ export async function getBusinessById(id: string): Promise<BusinessDetails | nul
 
     if (error) {
       console.error("Supabase error:", error)
-      return null
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return null
+      }
+      throw error
     }
 
     return transformBusinessFromDB(data)
   } catch (error) {
     console.error("Error in getBusinessById:", error)
-    return null
+    throw error
   }
 }
 

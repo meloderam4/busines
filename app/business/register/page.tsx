@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import BusinessRegisterForm from "@/components/business-register-form"
 
 export default async function BusinessRegisterPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,8 +11,15 @@ import type { BusinessDetails } from "@/types/business"
 import { MapPin, Phone, Globe, Clock, Star, Navigation, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
+// Function to validate UUID format
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}
+
 export default function BusinessPage() {
   const params = useParams()
+  const router = useRouter()
   const [business, setBusiness] = useState<BusinessDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,6 +32,13 @@ export default function BusinessPage() {
 
         const id = params.id as string
         console.log("Loading business with ID:", id)
+
+        // Check if the ID is a valid UUID
+        if (!isValidUUID(id)) {
+          console.error("Invalid UUID format:", id)
+          setError("Invalid business ID format")
+          return
+        }
 
         const data = await getBusinessById(id)
         console.log("Loaded business:", data)
@@ -44,9 +58,17 @@ export default function BusinessPage() {
     }
 
     if (params.id) {
+      // Check for reserved routes that should not be treated as business IDs
+      const reservedRoutes = ["register", "new", "create", "add"]
+      if (reservedRoutes.includes(params.id as string)) {
+        console.log("Reserved route detected, redirecting...")
+        router.push("/business/register")
+        return
+      }
+
       loadBusiness()
     }
-  }, [params.id])
+  }, [params.id, router])
 
   const handleGetDirections = () => {
     if (!business) return
