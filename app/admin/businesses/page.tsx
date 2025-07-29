@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { getAllBusinessesServer } from "@/lib/db/server-businesses"
 import { deleteBusinessAction } from "@/app/admin/actions"
 import Link from "next/link"
-import { Trash2, Edit, Plus } from "lucide-react"
+import { Trash2, Edit, Plus, Eye } from "lucide-react"
 
 export default async function BusinessesPage() {
   const businesses = await getAllBusinessesServer()
@@ -52,6 +52,11 @@ export default async function BusinessesPage() {
                     </p>
                   </div>
                   <div className="flex gap-2">
+                    <Link href={`/business/${business.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
                     <Link href={`/admin/businesses/${business.id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
