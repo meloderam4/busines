@@ -7,13 +7,14 @@ import { updateBusinessAction } from "@/app/admin/actions"
 import { getBusinessByIdServer } from "@/lib/db/server-businesses"
 
 interface EditBusinessPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function EditBusinessPage({ params }: EditBusinessPageProps) {
-  const business = await getBusinessByIdServer(params.id)
+  const { id } = await params
+  const business = await getBusinessByIdServer(id)
 
   if (!business) {
     notFound()

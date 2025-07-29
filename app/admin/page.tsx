@@ -1,38 +1,14 @@
-"use client"
-
-import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Building2, Users, Star, TrendingUp, Plus, Eye } from "lucide-react"
 import Link from "next/link"
-import { getAllBusinesses } from "@/lib/mock-data"
+import { getAllBusinessesServer } from "@/lib/db/server-businesses"
 import { getAllUsers } from "@/lib/mock-users"
-import type { BusinessDetails } from "@/types/business"
-import type { User } from "@/types/user"
 
-export default function AdminDashboard() {
-  const [businesses, setBusinesses] = useState<BusinessDetails[]>([])
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [businessData, userData] = await Promise.all([getAllBusinesses(), getAllUsers()])
-        setBusinesses(businessData || [])
-        setUsers(userData || [])
-      } catch (error) {
-        console.error("Error loading data:", error)
-        setBusinesses([])
-        setUsers([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadData()
-  }, [])
+export default async function AdminDashboard() {
+  const businesses = await getAllBusinessesServer()
+  const users = await getAllUsers()
 
   const stats = {
     totalBusinesses: businesses.length,
@@ -41,14 +17,6 @@ export default function AdminDashboard() {
     totalUsers: users.length,
     activeUsers: users.filter((u) => u.isActive).length,
     averageRating: businesses.length > 0 ? businesses.reduce((acc, b) => acc + b.rating, 0) / businesses.length : 0,
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    )
   }
 
   return (
