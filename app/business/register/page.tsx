@@ -2,8 +2,10 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import BusinessRegisterForm from "@/components/business-register-form"
 
+export const dynamic = "force-dynamic"
+
 export default async function BusinessRegisterPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },
