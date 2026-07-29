@@ -1,116 +1,53 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Home, Search, Plus, Heart, User } from "lucide-react"
+import { Home, PackagePlus, Sparkles, Tags, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+
 import { cn } from "@/lib/utils"
+
+const navItems = [
+  { href: "/", icon: Home, label: "خانه" },
+  { href: "/#builder", icon: PackagePlus, label: "ساخت", special: true },
+  { href: "/#features", icon: Sparkles, label: "امکانات" },
+  { href: "/#pricing", icon: Tags, label: "پلن‌ها" },
+  { href: "/login", icon: User, label: "ورود" },
+]
 
 export default function BottomNav() {
   const pathname = usePathname()
-  const [isVisible, setIsVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-
-  useEffect(() => {
-    const controlNavbar = () => {
-      if (typeof window !== "undefined") {
-        if (window.scrollY > lastScrollY && window.scrollY > 100) {
-          // Scrolling down
-          setIsVisible(false)
-        } else {
-          // Scrolling up
-          setIsVisible(true)
-        }
-        setLastScrollY(window.scrollY)
-      }
-    }
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("scroll", controlNavbar)
-      return () => {
-        window.removeEventListener("scroll", controlNavbar)
-      }
-    }
-  }, [lastScrollY])
-
-  const navItems = [
-    {
-      href: "/",
-      icon: Home,
-      label: "Home",
-      isActive: pathname === "/",
-    },
-    {
-      href: "/search",
-      icon: Search,
-      label: "Search",
-      isActive: pathname === "/search",
-    },
-    {
-      href: "/business/register",
-      icon: Plus,
-      label: "Add Business",
-      isActive: pathname === "/business/register",
-      isSpecial: true,
-    },
-    {
-      href: "/favorites",
-      icon: Heart,
-      label: "Favorites",
-      isActive: pathname === "/favorites",
-    },
-    {
-      href: "/profile",
-      icon: User,
-      label: "Profile",
-      isActive: pathname === "/profile" || pathname === "/login" || pathname === "/register",
-    },
-  ]
 
   return (
-    <nav
-      className={cn(
-        "fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50 transition-transform duration-300 md:hidden",
-        isVisible ? "translate-y-0" : "translate-y-full",
-      )}
-    >
-      <div className="flex items-center justify-around py-2 px-4 max-w-md mx-auto">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 shadow-lg backdrop-blur md:hidden" dir="rtl">
+      <div className="mx-auto flex max-w-md items-center justify-around px-3 py-2">
         {navItems.map((item) => {
           const Icon = item.icon
+          const isActive = pathname === item.href
+
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[60px]",
-                item.isActive ? "text-primary" : "text-muted-foreground hover:text-primary",
-                item.isSpecial && "relative",
+                "flex min-w-14 flex-col items-center justify-center rounded-xl px-2 py-1 text-xs transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-primary",
               )}
             >
-              {item.isSpecial ? (
-                <div className="bg-primary text-primary-foreground p-3 rounded-full shadow-lg transform -translate-y-2">
-                  <Icon className="w-6 h-6" />
-                </div>
-              ) : (
-                <Icon className={cn("w-6 h-6 mb-1", item.isActive && "scale-110")} />
-              )}
               <span
                 className={cn(
-                  "text-xs transition-all duration-200",
-                  item.isActive ? "font-semibold" : "font-normal",
-                  item.isSpecial && "mt-1",
+                  "mb-1 flex h-8 w-8 items-center justify-center rounded-full",
+                  item.special && "bg-primary text-primary-foreground shadow-lg",
+                  isActive && !item.special && "bg-primary/10",
                 )}
               >
-                {item.label}
+                <Icon className="h-4 w-4" />
               </span>
-              {item.isActive && !item.isSpecial && <div className="w-1 h-1 bg-primary rounded-full mt-1"></div>}
+              <span className={cn(isActive && "font-bold")}>{item.label}</span>
             </Link>
           )
         })}
       </div>
-
-      {/* Safe area for devices with home indicator */}
-      <div className="h-safe-area-inset-bottom bg-card"></div>
+      <div className="h-safe-area-inset-bottom bg-card/95" />
     </nav>
   )
 }
