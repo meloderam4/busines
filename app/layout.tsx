@@ -6,14 +6,13 @@ import { ThemeProvider } from "@/components/theme-provider"
 import Footer from "@/components/footer"
 import BottomNav from "@/components/bottom-nav"
 import MainHeader from "@/components/main-header"
-import GoogleMapsScriptLoader from "@/components/google-maps-script-loader"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Business Finder - Local Business Directory",
-  description: "Comprehensive platform for registering and searching local businesses with location-based features.",
-    generator: 'v0.dev'
+  title: "فروشگاه‌یار | فروشگاه‌ساز مینیمال",
+  description: "فروشگاه‌ساز اینترنتی ساده برای ساخت ویترین آنلاین، معرفی محصول و راه‌اندازی سریع فروش.",
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -22,11 +21,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" dir="ltr">
+    <html lang="fa" dir="rtl">
       <head></head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <GoogleMapsScriptLoader />
           <MainHeader />
           <div className="pb-20 md:pb-0">{children}</div>
           <Footer />

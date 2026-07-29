@@ -1,330 +1,567 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getAllBusinesses, getBusinessesByCategory, searchBusinesses } from "@/lib/db/businesses"
-import type { BusinessDetails } from "@/types/business"
-import { Search, MapPin, Phone, Star, Navigation, Eye, Clock, AlertCircle } from "lucide-react"
-import Link from "next/link"
+import { useMemo, useState } from "react"
+import {
+  ArrowLeft,
+  BadgeCheck,
+  Check,
+  CreditCard,
+  Globe2,
+  LayoutTemplate,
+  Package,
+  Palette,
+  Rocket,
+  Settings2,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Store,
+  Truck,
+  Wand2,
+  Zap,
+} from "lucide-react"
 
-const categories = [
-  "All",
-  "Restaurant & Cafe",
-  "Shopping & Retail",
-  "Automotive Services",
-  "Health & Beauty",
-  "Professional Services",
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
+
+const storeTypes = ["پوشاک", "زیبایی", "خوراکی", "دیجیتال", "هنر دست‌ساز", "خدمات"]
+
+const palettes = [
+  {
+    name: "مشکی مینیمال",
+    accent: "bg-zinc-950",
+    button: "bg-zinc-950 hover:bg-zinc-800",
+    badge: "border-zinc-200 bg-zinc-50 text-zinc-800",
+    surface: "from-zinc-100 to-white",
+    text: "text-zinc-950",
+  },
+  {
+    name: "سبز آرام",
+    accent: "bg-emerald-600",
+    button: "bg-emerald-600 hover:bg-emerald-700",
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    surface: "from-emerald-50 to-white",
+    text: "text-emerald-900",
+  },
+  {
+    name: "آبی لوکس",
+    accent: "bg-blue-600",
+    button: "bg-blue-600 hover:bg-blue-700",
+    badge: "border-blue-200 bg-blue-50 text-blue-800",
+    surface: "from-blue-50 to-white",
+    text: "text-blue-950",
+  },
+]
+
+const launchSteps = [
+  "نام و دسته فروشگاه را وارد کن",
+  "چند محصول اول را اضافه کن",
+  "روش پرداخت و ارسال را انتخاب کن",
+  "پیش‌نمایش را ببین و منتشر کن",
+]
+
+const featureCards = [
+  {
+    icon: LayoutTemplate,
+    title: "قالب‌های مینیمال",
+    description: "فروشگاه با صفحه محصول، سبد خرید، بنر معرفی و بخش اعتماد آماده می‌شود.",
+  },
+  {
+    icon: CreditCard,
+    title: "آماده پرداخت",
+    description: "جایگاه اتصال پرداخت آنلاین، کارت‌به‌کارت و سفارش از واتساپ از ابتدا دیده شده است.",
+  },
+  {
+    icon: Truck,
+    title: "ارسال ساده",
+    description: "گزینه‌های ارسال شهری، پستی یا تحویل حضوری بدون پیچیدگی قابل تنظیم هستند.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "اعتمادسازی سریع",
+    description: "نشان ضمانت، قوانین مرجوعی و اطلاعات تماس در قالب فروشگاه برجسته می‌شوند.",
+  },
+]
+
+const plans = [
+  {
+    name: "شروع",
+    price: "رایگان",
+    description: "برای تست ایده و ساخت اولین ویترین",
+    perks: ["۱ قالب آماده", "تا ۱۰ محصول", "سفارش از واتساپ"],
+  },
+  {
+    name: "رشد",
+    price: "۲۹۰ هزار تومان",
+    description: "برای فروشگاه‌هایی که آماده فروش جدی هستند",
+    perks: ["دامنه اختصاصی", "پرداخت آنلاین", "گزارش سفارش‌ها"],
+    highlighted: true,
+  },
+  {
+    name: "حرفه‌ای",
+    price: "سفارشی",
+    description: "برای برندهایی که چند کانال فروش می‌خواهند",
+    perks: ["طراحی اختصاصی", "اتصال انبار", "پشتیبانی اولویت‌دار"],
+  },
 ]
 
 export default function HomePage() {
-  const [businesses, setBusinesses] = useState<BusinessDetails[]>([])
-  const [filteredBusinesses, setFilteredBusinesses] = useState<BusinessDetails[]>([])
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [debugInfo, setDebugInfo] = useState<string>("")
+  const [storeName, setStoreName] = useState("گالری مینیمال")
+  const [storeType, setStoreType] = useState(storeTypes[0])
+  const [paletteIndex, setPaletteIndex] = useState(0)
+  const [products, setProducts] = useState("کیف چرمی دست‌دوز\nتی‌شرت سفید ساده\nشمع معطر وانیلی")
+  const [delivery, setDelivery] = useState("ارسال پستی و پیک شهری")
+  const [payment, setPayment] = useState("پرداخت آنلاین و کارت‌به‌کارت")
+  const [whatsapp, setWhatsapp] = useState("0912 000 0000")
 
-  useEffect(() => {
-    const loadBusinesses = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        setDebugInfo("Loading businesses...")
+  const palette = palettes[paletteIndex]
 
-        console.log("Starting to load businesses...")
-        const data = await getAllBusinesses()
-        console.log("Loaded businesses:", data)
+  const productList = useMemo(
+    () =>
+      products
+        .split("\n")
+        .map((product) => product.trim())
+        .filter(Boolean)
+        .slice(0, 4),
+    [products],
+  )
 
-        setBusinesses(data)
-        setFilteredBusinesses(data)
-        setDebugInfo(`Loaded ${data.length} businesses successfully`)
-
-        if (data.length === 0) {
-          setError("No businesses found. Please check your database connection or add some businesses.")
-        }
-      } catch (error) {
-        console.error("Error loading businesses:", error)
-        setError(`Failed to load businesses: ${error instanceof Error ? error.message : "Unknown error"}`)
-        setDebugInfo(`Error: ${error instanceof Error ? error.message : "Unknown error"}`)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadBusinesses()
-  }, [])
-
-  useEffect(() => {
-    const filterBusinesses = async () => {
-      try {
-        let filtered = businesses
-
-        if (selectedCategory !== "All") {
-          filtered = await getBusinessesByCategory(selectedCategory)
-        }
-
-        if (searchQuery.trim()) {
-          filtered = await searchBusinesses(searchQuery)
-        }
-
-        setFilteredBusinesses(filtered)
-        setDebugInfo(`Showing ${filtered.length} businesses`)
-      } catch (error) {
-        console.error("Error filtering businesses:", error)
-        setFilteredBusinesses([])
-      }
-    }
-
-    if (businesses.length > 0) {
-      filterBusinesses()
-    }
-  }, [searchQuery, selectedCategory, businesses])
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-  }
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
-  }
-
-  const handleDirections = (business: BusinessDetails) => {
-    if (business.latitude && business.longitude) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`
-      window.open(url, "_blank")
-    } else {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(business.address)}`
-      window.open(url, "_blank")
-    }
-  }
-
-  const handleCall = (phone: string) => {
-    window.location.href = `tel:${phone}`
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p className="text-gray-600">Loading businesses...</p>
-            <p className="text-sm text-gray-500 mt-2">{debugInfo}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const completionScore = useMemo(() => {
+    const fields = [storeName, storeType, products, delivery, payment, whatsapp]
+    return Math.round((fields.filter((field) => field.trim().length > 0).length / fields.length) * 100)
+  }, [delivery, payment, products, storeName, storeType, whatsapp])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Persian Hub</h1>
-          <p className="text-xl md:text-2xl mb-8">Discover the best Persian businesses in your area</p>
+    <main className="min-h-screen bg-background text-foreground" dir="rtl">
+      <section className="relative overflow-hidden border-b bg-gradient-to-b from-secondary/80 via-background to-background">
+        <div className="absolute left-0 top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute right-10 top-32 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl" />
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search businesses, services, or locations..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10 pr-4 py-3 text-lg rounded-full border-0 shadow-lg text-gray-900"
-              />
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
+          <div className="space-y-8">
+            <Badge className="w-fit gap-2 border-primary/20 bg-primary/10 text-primary hover:bg-primary/10">
+              <Sparkles className="h-4 w-4" />
+              فروشگاه اینترنتی مینیمال در چند دقیقه
+            </Badge>
+
+            <div className="space-y-5">
+              <h1 className="max-w-4xl text-4xl font-black tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+                فروشگاه‌ساز ساده برای آدم‌هایی که می‌خواهند سریع آنلاین بفروشند.
+              </h1>
+              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+                کاربران وارد می‌شوند، نام برند و چند محصول را می‌نویسند، قالب مینیمال را انتخاب می‌کنند و یک ویترین آماده
+                فروش با پرداخت، ارسال و راه ارتباطی می‌گیرند.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-12 px-6">
+                <a href="#builder">
+                  شروع ساخت فروشگاه
+                  <ArrowLeft className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="h-12 bg-background/80 px-6">
+                <a href="#preview">دیدن پیش‌نمایش زنده</a>
+              </Button>
+            </div>
+
+            <div className="grid max-w-2xl grid-cols-3 gap-3 text-center sm:text-right">
+              {[
+                ["۳ دقیقه", "تا اولین پیش‌نمایش"],
+                ["بدون کدنویسی", "برای فروشنده‌ها"],
+                ["آماده Vercel", "برای انتشار سریع"],
+              ].map(([value, label]) => (
+                <Card key={value} className="bg-card/80">
+                  <CardContent className="p-4">
+                    <div className="text-lg font-bold">{value}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          <StorePreview
+            delivery={delivery}
+            palette={palette}
+            payment={payment}
+            products={productList}
+            storeName={storeName}
+            storeType={storeType}
+            whatsapp={whatsapp}
+          />
+        </div>
+      </section>
+
+      <section id="builder" className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <Badge variant="outline" className="w-fit gap-2">
+              <Wand2 className="h-4 w-4" />
+              سازنده فروشگاه
+            </Badge>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">همین‌جا فروشگاه نمونه را بساز</h2>
+            <p className="text-muted-foreground leading-7">
+              این MVP به کاربر نشان می‌دهد ساخت فروشگاه چقدر کم‌اصطکاک است: چند ورودی کوتاه، انتخاب ظاهر، و پیش‌نمایشی
+              که همزمان تغییر می‌کند.
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Settings2 className="h-5 w-5 text-primary" />
+                  اطلاعات اولیه
+                </CardTitle>
+                <Badge variant="secondary">{completionScore}% آماده</Badge>
+              </div>
+              <Progress value={completionScore} className="h-2" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="store-name">نام فروشگاه</Label>
+                  <Input
+                    id="store-name"
+                    value={storeName}
+                    onChange={(event) => setStoreName(event.target.value)}
+                    placeholder="مثلاً: گالری مینیمال"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">شماره واتساپ/تماس</Label>
+                  <Input
+                    id="whatsapp"
+                    value={whatsapp}
+                    onChange={(event) => setWhatsapp(event.target.value)}
+                    placeholder="0912 ..."
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>دسته فروشگاه</Label>
+                <div className="flex flex-wrap gap-2">
+                  {storeTypes.map((type) => (
+                    <Button
+                      key={type}
+                      type="button"
+                      variant={storeType === type ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setStoreType(type)}
+                    >
+                      {type}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>استایل بصری</Label>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {palettes.map((item, index) => (
+                    <Button
+                      key={item.name}
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "h-auto justify-start gap-3 p-3",
+                        paletteIndex === index && "border-primary bg-primary/5",
+                      )}
+                      onClick={() => setPaletteIndex(index)}
+                    >
+                      <span className={cn("h-5 w-5 rounded-full", item.accent)} />
+                      <span>{item.name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="products">محصولات اولیه، هر خط یک محصول</Label>
+                <Textarea
+                  id="products"
+                  value={products}
+                  onChange={(event) => setProducts(event.target.value)}
+                  className="min-h-28"
+                  placeholder="نام محصولات را خط به خط بنویس"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="delivery">روش ارسال</Label>
+                  <Input id="delivery" value={delivery} onChange={(event) => setDelivery(event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment">روش پرداخت</Label>
+                  <Input id="payment" value={payment} onChange={(event) => setPayment(event.target.value)} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div id="preview" className="lg:sticky lg:top-24 lg:self-start">
+          <StorePreview
+            delivery={delivery}
+            palette={palette}
+            payment={payment}
+            products={productList}
+            storeName={storeName}
+            storeType={storeType}
+            whatsapp={whatsapp}
+          />
+        </div>
+      </section>
+
+      <section id="features" className="border-y bg-secondary/50">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="space-y-4">
+              <Badge variant="outline" className="w-fit gap-2 bg-background">
+                <Zap className="h-4 w-4" />
+                امکانات محصول
+              </Badge>
+              <h2 className="text-3xl font-black tracking-tight sm:text-4xl">از ویترین تا سفارش، بدون شلوغی.</h2>
+              <p className="leading-7 text-muted-foreground">
+                تمرکز روی تجربه‌ای است که فروشنده تازه‌کار هم بتواند با آن کار کند و مشتری هم سریع به خرید برسد.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {featureCards.map((feature) => {
+                const Icon = feature.icon
+                return (
+                  <Card key={feature.title}>
+                    <CardContent className="space-y-4 p-6">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold">{feature.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Debug Info */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="container mx-auto px-4 py-2">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Debug: {debugInfo} | Total businesses: {businesses.length} | Filtered: {filteredBusinesses.length}
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="container mx-auto px-4 py-4">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <p className="text-gray-600">
-            {filteredBusinesses.length} business{filteredBusinesses.length !== 1 ? "es" : ""} found
-          </p>
-        </div>
-      </div>
-
-      {/* Business Grid */}
-      <div className="container mx-auto px-4 pb-16">
-        {filteredBusinesses.length === 0 && !loading ? (
-          <div className="text-center py-16">
-            <p className="text-xl text-gray-600 mb-4">No businesses found</p>
-            <p className="text-gray-500 mb-6">
-              {businesses.length === 0
-                ? "It looks like there are no businesses in the database yet."
-                : "Try adjusting your search or filter criteria"}
-            </p>
-            {businesses.length === 0 && (
-              <div className="space-y-4">
-                <p className="text-sm text-gray-500">To add businesses, please:</p>
-                <ol className="text-sm text-gray-600 space-y-2 max-w-md mx-auto">
-                  <li>1. Run the SQL scripts in your Supabase dashboard</li>
-                  <li>2. Check your environment variables</li>
-                  <li>3. Verify your database connection</li>
-                </ol>
-                <Link href="/admin/businesses/new">
-                  <Button className="mt-4">Add First Business</Button>
-                </Link>
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="grid gap-0 md:grid-cols-2">
+                <div className="space-y-5 p-6 sm:p-8">
+                  <Badge variant="outline" className="w-fit gap-2">
+                    <Rocket className="h-4 w-4" />
+                    مسیر انتشار
+                  </Badge>
+                  <h2 className="text-2xl font-black">فرآیند ساخت برای کاربر نهایی</h2>
+                  <div className="space-y-4">
+                    {launchSteps.map((step, index) => (
+                      <div key={step} className="flex gap-3">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                          {index + 1}
+                        </div>
+                        <p className="text-sm leading-7 text-muted-foreground">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-zinc-950 p-6 text-white sm:p-8">
+                  <div className="mb-6 flex items-center gap-2 text-sm text-zinc-300">
+                    <Globe2 className="h-4 w-4" />
+                    deploy-ready
+                  </div>
+                  <pre className="overflow-hidden rounded-2xl bg-white/10 p-4 text-left text-xs leading-6 text-emerald-200" dir="ltr">
+                    <code>{`storefront.build()
+  .theme("minimal")
+  .payments(["online", "card"])
+  .deploy("vercel")`}</code>
+                  </pre>
+                  <p className="mt-6 text-sm leading-7 text-zinc-300">
+                    ساختار صفحه برای انتشار سریع روی Vercel آماده است و می‌تواند در مرحله بعد به دیتابیس، احراز هویت و
+                    پرداخت واقعی وصل شود.
+                  </p>
+                </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BadgeCheck className="h-5 w-5 text-primary" />
+                چیزهایی که فروشنده می‌بیند
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              {[
+                "داشبورد سفارش‌ها",
+                "ویرایش محصولات",
+                "لینک فروشگاه",
+                "وضعیت پرداخت",
+                "تنظیم ارسال",
+                "پیام مشتری",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-xl border bg-card p-3 text-sm">
+                  <Check className="h-4 w-4 text-emerald-600" />
+                  {item}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section id="pricing" className="bg-zinc-950 text-white">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mb-10 max-w-2xl space-y-4">
+            <Badge className="w-fit bg-white/10 text-white hover:bg-white/10">پلن‌های پیشنهادی</Badge>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">قیمت‌گذاری ساده برای شروع سریع.</h2>
+            <p className="leading-7 text-zinc-300">
+              این بخش برای نسخه اولیه محصول آماده شده تا مسیر درآمدی فروشگاه‌ساز شفاف باشد.
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBusinesses.map((business) => (
-              <Card key={business.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                {/* Clickable Image */}
-                <Link href={`/business/${business.id}`} className="block relative">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={business.image || "/placeholder.svg?height=240&width=400"}
-                      alt={business.name}
-                      className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
-                    {business.isPromoted && (
-                      <Badge className="absolute top-3 right-3 bg-yellow-500 text-white shadow-lg">Featured</Badge>
-                    )}
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="bg-white bg-opacity-90 rounded-full p-3">
-                        <Eye className="w-6 h-6 text-blue-600" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
 
-                <CardContent className="p-5">
-                  {/* Business Info */}
-                  <div className="mb-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <Link href={`/business/${business.id}`} className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-900 hover:text-blue-600 transition-colors line-clamp-1 cursor-pointer">
-                          {business.name}
-                        </h3>
-                      </Link>
-                      <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-semibold text-gray-700">{business.rating}</span>
-                      </div>
-                    </div>
-
-                    <Badge variant="outline" className="mb-3 text-xs">
-                      {business.category}
+          <div className="grid gap-4 md:grid-cols-3">
+            {plans.map((plan) => (
+              <Card key={plan.name} className={cn("border-white/10 bg-white/5 text-white", plan.highlighted && "bg-white text-zinc-950")}>
+                <CardContent className="space-y-6 p-6">
+                  <div>
+                    <Badge variant={plan.highlighted ? "default" : "outline"} className={cn(!plan.highlighted && "border-white/20 text-white")}>
+                      {plan.name}
                     </Badge>
-
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">{business.description}</p>
-
-                    {/* Contact Info */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-gray-500 text-sm">
-                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                        <span className="line-clamp-1">{business.address}</span>
+                    <div className="mt-5 text-2xl font-black">{plan.price}</div>
+                    <p className={cn("mt-2 text-sm leading-6", plan.highlighted ? "text-zinc-600" : "text-zinc-300")}>
+                      {plan.description}
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    {plan.perks.map((perk) => (
+                      <div key={perk} className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-emerald-500" />
+                        {perk}
                       </div>
-                      {business.phone && (
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                          <Phone className="w-4 h-4 flex-shrink-0" />
-                          <span>{business.phone}</span>
-                        </div>
-                      )}
-                      {business.workingHours && (
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                          <Clock className="w-4 h-4 flex-shrink-0" />
-                          <span className="line-clamp-1">{business.workingHours}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Reviews Count */}
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <span>{business.reviewCount} reviews</span>
-                      <span>{business.distance} km away</span>
-                    </div>
+                    ))}
                   </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 bg-transparent hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-                      onClick={() => handleDirections(business)}
-                    >
-                      <Navigation className="w-4 h-4 mr-1" />
-                      Directions
-                    </Button>
-                    <Link href={`/business/${business.id}`} className="flex-1">
-                      <Button size="sm" className="w-full">
-                        <Eye className="w-4 h-4 mr-1" />
-                        View Details
-                      </Button>
-                    </Link>
-                  </div>
-
-                  {/* Call Button (if phone available) */}
-                  {business.phone && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full mt-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                      onClick={() => handleCall(business.phone!)}
-                    >
-                      <Phone className="w-4 h-4 mr-1" />
-                      Call Now
-                    </Button>
-                  )}
+                  <Button className="w-full" variant={plan.highlighted ? "default" : "secondary"}>
+                    انتخاب پلن
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+type PaletteConfig = (typeof palettes)[number]
+
+function StorePreview({
+  delivery,
+  palette,
+  payment,
+  products,
+  storeName,
+  storeType,
+  whatsapp,
+}: {
+  delivery: string
+  palette: PaletteConfig
+  payment: string
+  products: string[]
+  storeName: string
+  storeType: string
+  whatsapp: string
+}) {
+  const visibleProducts = products.length > 0 ? products : ["محصول نمونه"]
+
+  return (
+    <Card className="overflow-hidden border-2 bg-card shadow-2xl shadow-primary/10">
+      <CardContent className="p-0">
+        <div className={cn("bg-gradient-to-br p-5 sm:p-6", palette.surface)}>
+          <div className="rounded-[2rem] border bg-white p-4 shadow-xl">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className={cn("flex h-11 w-11 items-center justify-center rounded-2xl text-white", palette.accent)}>
+                  <Store className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className={cn("font-black", palette.text)}>{storeName || "نام فروشگاه"}</div>
+                  <div className="text-xs text-zinc-500">{storeType || "دسته فروشگاه"}</div>
+                </div>
+              </div>
+              <Badge variant="outline" className={palette.badge}>
+                آنلاین
+              </Badge>
+            </div>
+
+            <div className="rounded-3xl bg-zinc-950 p-5 text-white">
+              <div className="flex items-center gap-2 text-xs text-zinc-300">
+                <ShoppingBag className="h-4 w-4" />
+                کالکشن تازه
+              </div>
+              <h3 className="mt-4 text-2xl font-black leading-tight">خرید ساده از {storeName || "فروشگاه شما"}</h3>
+              <p className="mt-3 text-sm leading-6 text-zinc-300">محصولات منتخب، سفارش سریع و تجربه‌ای مینیمال برای مشتری.</p>
+              <Button size="sm" className={cn("mt-5", palette.button)}>
+                مشاهده محصولات
+              </Button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {visibleProducts.map((product, index) => (
+                <div key={`${product}-${index}`} className="rounded-2xl border bg-zinc-50 p-3">
+                  <div className={cn("mb-3 flex h-20 items-center justify-center rounded-xl text-white", index % 2 ? "bg-zinc-800" : palette.accent)}>
+                    <Package className="h-6 w-6" />
+                  </div>
+                  <div className="line-clamp-1 text-sm font-bold text-zinc-950">{product}</div>
+                  <div className="mt-1 text-xs text-zinc-500">آماده سفارش</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 space-y-3 rounded-3xl border bg-white p-4">
+              <div className="flex items-start gap-3 text-sm">
+                <Truck className="mt-0.5 h-4 w-4 text-zinc-500" />
+                <div>
+                  <div className="font-bold text-zinc-950">ارسال</div>
+                  <div className="text-zinc-500">{delivery || "روش ارسال"}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 text-sm">
+                <CreditCard className="mt-0.5 h-4 w-4 text-zinc-500" />
+                <div>
+                  <div className="font-bold text-zinc-950">پرداخت</div>
+                  <div className="text-zinc-500">{payment || "روش پرداخت"}</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-3 rounded-2xl bg-zinc-100 p-3 text-sm">
+                <span className="text-zinc-500">تماس سریع</span>
+                <span className="font-bold text-zinc-950" dir="ltr">
+                  {whatsapp || "0912 ..."}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
