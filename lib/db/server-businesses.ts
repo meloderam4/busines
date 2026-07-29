@@ -1,8 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
 import type { BusinessDetails } from "@/types/business"
 
+async function createOptionalClient() {
+  try {
+    return await createClient()
+  } catch (error) {
+    console.warn("Supabase is unavailable; returning empty business data.", error)
+    return null
+  }
+}
+
 export async function getAllBusinessesServer(): Promise<BusinessDetails[]> {
-  const supabase = await createClient()
+  const supabase = await createOptionalClient()
+
+  if (!supabase) {
+    return []
+  }
 
   const { data, error } = await supabase.from("businesses").select("*").order("created_at", { ascending: false })
 
@@ -15,7 +28,11 @@ export async function getAllBusinessesServer(): Promise<BusinessDetails[]> {
 }
 
 export async function getBusinessByIdServer(id: string): Promise<BusinessDetails | null> {
-  const supabase = await createClient()
+  const supabase = await createOptionalClient()
+
+  if (!supabase) {
+    return null
+  }
 
   const { data, error } = await supabase.from("businesses").select("*").eq("id", id).single()
 
